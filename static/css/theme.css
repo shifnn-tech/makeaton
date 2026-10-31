@@ -1,7 +1,7 @@
 /*
  * static/css/theme.css
  * ====================
- * BrightLoop / Auralis Design System (DESIGN.md)
+ * BrightLoop Design System (DESIGN.md)
  * 
  * Philosophy: "Visual Scaffolding" - engineered precision, structural containment,
  * subtle 1px #E8E8E8 borders, layered containers, generous 24px card radius,
@@ -294,48 +294,35 @@ h3, .font-h3 {
 }
 
 .hero-demo-inner {
-  background: linear-gradient(180deg, #f0f2f5 0%, #e2e6eb 100%);
+  background: #f8fafc;
   border-radius: calc(var(--theme-radius-card) - 6px);
   position: relative;
-  min-height: 380px;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
   overflow: hidden;
-  border: 1px solid rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-/* Abstract soundwave canvas / graphic */
-.hero-waveform-svg {
-  width: 100%;
-  height: 260px;
-  position: absolute;
-  top: 15%;
-  left: 0;
-  opacity: 0.85;
-}
-
-/* Floating player bar in hero */
-.hero-player-bar {
-  background-color: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+/* Revenue Dashboard Preview inside Hero */
+.dashboard-stat-card {
+  background-color: #ffffff;
   border: 1px solid var(--theme-outline-variant);
   border-radius: 14px;
-  padding: 0.85rem 1.25rem;
-  margin: 1.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+  padding: 1rem 1.25rem;
+  text-align: left;
+  transition: border-color 0.15s ease;
 }
 
-/* Trust Strip */
-.trust-strip {
-  border-top: 1px solid var(--theme-outline-variant);
-  border-bottom: 1px solid var(--theme-outline-variant);
-  padding: 3.5rem 0;
-  margin-bottom: 120px;
+.dashboard-stat-card:hover {
+  border-color: #cbd5e1;
+}
+
+.dashboard-chart-box {
+  background-color: #ffffff;
+  border: 1px solid var(--theme-outline-variant);
+  border-radius: 14px;
+  padding: 1.25rem;
 }
 
 .trust-logo-pill {
@@ -443,6 +430,32 @@ h3, .font-h3 {
 .code-comment { color: #6b7280; font-style: italic; }
 .code-func { color: #93c5fd; }
 
+/* Revenue Leak Detector Items */
+.leak-alert-item {
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 12px;
+  padding: 0.9rem 1.15rem;
+  margin-bottom: 0.75rem;
+  text-align: left;
+}
+
+.leak-alert-item.leak-critical {
+  border-left: 3px solid #ef4444;
+}
+
+.leak-alert-item.leak-warning {
+  border-left: 3px solid #eab308;
+}
+
+.leak-alert-item.leak-success {
+  border-left: 3px solid #22c55e;
+}
+
+.leak-alert-item:last-child {
+  margin-bottom: 0;
+}
+
 /* Pricing Cards */
 .pricing-card {
   background-color: #ffffff;
@@ -483,23 +496,24 @@ h3, .font-h3 {
   border-radius: var(--theme-radius-pill);
 }
 
-/* Security Tile */
+/* Architecture & Security Feature Tiles */
 .security-tile {
   background-color: #ffffff;
   border: 1px solid var(--theme-outline-variant);
   border-radius: 16px;
   padding: 1.5rem;
-  height: 110px;
+  min-height: 110px;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  text-align: center;
-  transition: border-color 0.2s ease;
+  text-align: left;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .security-tile:hover {
   border-color: #94a3b8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
 /* Modern Minimalist Footer */

@@ -3,7 +3,7 @@
 
 {% block title %}
   {% if not user.is_authenticated %}
-    BrightLoop - AI Voice Infrastructure & Subscription Engine
+    BrightLoop - Subscription Management & Billing System
   {% else %}
     Home - BrightLoop
   {% endif %}
@@ -14,7 +14,7 @@
 {% block content %}
 {% if not user.is_authenticated %}
   <!-- ========================================================================
-       AURALIS / BRIGHTLOOP PUBLIC LANDING PAGE (screen.png & DESIGN.md)
+       BRIGHTLOOP PUBLIC LANDING PAGE (DESIGN.md - 24px cards, offline)
        ======================================================================== -->
 
   <!-- 1. TopNavBar -->
@@ -27,10 +27,9 @@
 
       <!-- Desktop Nav Links -->
       <div class="d-none d-md-flex align-items-center gap-4">
-        <a class="landing-nav-link text-dark fw-bold border-bottom border-dark border-2 pb-1" href="#capabilities">Models</a>
-        <a class="landing-nav-link" href="#developer-api">API</a>
-        <a class="landing-nav-link" href="#applications">Voice Lab</a>
-        <a class="landing-nav-link" href="#enterprise">Enterprise</a>
+        <a class="landing-nav-link text-dark fw-bold border-bottom border-dark border-2 pb-1" href="#features">Features</a>
+        <a class="landing-nav-link" href="#how-it-works">How it works</a>
+        <a class="landing-nav-link" href="#intelligence">Intelligence</a>
         <a class="landing-nav-link" href="#pricing">Pricing</a>
       </div>
 
@@ -48,191 +47,207 @@
 
   <!-- 2. Hero Section -->
   <section class="landing-container text-center pt-5 pb-5 mt-4" style="margin-bottom: 110px;">
-    <!-- Announcement Badge -->
-    <div class="d-inline-flex align-items-center badge-theme-announcement mb-4 shadow-sm">
-      <span class="badge-tag-dark">New</span>
-      <span class="text-dark small">BrightLoop v2.0 is now live</span>
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
-
     <!-- Main Headline -->
     <h1 class="hero-title mx-auto mb-4" style="max-width: 920px;">
-      Create AI audio that sounds human
+      Subscriptions, billing and revenue, in one place.
     </h1>
 
     <!-- Subtitle -->
     <p class="mx-auto mb-5 text-muted" style="max-width: 640px; font-size: 1.15rem; line-height: 1.6;">
-      Precision-engineered voice and subscription infrastructure. Generate ultra-realistic speech, manage global billing, and scale seamlessly with enterprise APIs.
+      Manage plans, invoices and payments, and see where revenue is leaking before it costs you.
     </p>
 
     <!-- Hero CTA Buttons -->
     <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 mb-5">
       <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-pill shadow-sm">
-        Start Building
+        Get Started
       </a>
-      <a href="{% url 'catalog:plan_list' %}" class="btn btn-outline-secondary btn-pill">
-        Explore Platform
+      <a href="#features" class="btn btn-outline-secondary btn-pill">
+        See Features
       </a>
     </div>
 
-    <!-- Hero Demo UI Window (Soundwave / Audio Player Frame) -->
+    <!-- Hero Demo UI Window (Revenue Dashboard Preview Card with MRR, ARR, and Mini Chart) -->
     <div class="hero-demo-frame mx-auto" style="max-width: 1040px;">
       <div class="hero-demo-inner">
-        <!-- SVG Ambient Soundwave Visualization -->
-        <svg class="hero-waveform-svg" viewBox="0 0 1000 240" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.25"/>
-              <stop offset="50%" stop-color="#0f172a" stop-opacity="0.35"/>
-              <stop offset="100%" stop-color="#2563eb" stop-opacity="0.2"/>
-            </linearGradient>
-            <linearGradient id="waveGradFront" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#1e293b" stop-opacity="0.4"/>
-              <stop offset="100%" stop-color="#334155" stop-opacity="0.6"/>
-            </linearGradient>
-          </defs>
-          <path d="M0,160 Q150,20 300,140 T600,100 T850,50 T1000,140 L1000,240 L0,240 Z" fill="url(#waveGrad)"/>
-          <path d="M0,180 Q200,60 400,150 T700,70 T900,130 T1000,170 L1000,240 L0,240 Z" fill="url(#waveGradFront)"/>
-        </svg>
+        <!-- Top bar of the preview card -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom border-light-subtle">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-dark text-white px-2 py-1" style="font-size: 0.75rem;">BrightLoop Financials</span>
+            <span class="text-dark fw-bold small">Revenue Operations Console</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success-subtle text-success border border-success-subtle small d-inline-flex align-items-center gap-1">
+              <span class="rounded-circle bg-success" style="width: 6px; height: 6px; display: inline-block;"></span> Live Sync Active
+            </span>
+            <span class="text-muted small">Updated Just Now</span>
+          </div>
+        </div>
 
-        <!-- Floating Player Bar -->
-        <div class="hero-player-bar">
-          <div class="d-flex align-items-center gap-3">
-            <button class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" aria-label="Play sample">
-              <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
-              </svg>
-            </button>
-            <div class="text-start">
-              <div class="fw-bold small text-dark">Synthesized Voice Output</div>
-              <div class="text-muted" style="font-size: 0.75rem;">Model: Aura-v2-English &bull; 24kHz Ultra-HD</div>
+        <!-- 3 KPI Metric Cards (MRR, ARR, Active Contracts) -->
+        <div class="row g-3 mb-4 text-start">
+          <div class="col-md-4">
+            <div class="dashboard-stat-card h-100">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="font-label-caps text-muted">Monthly Recurring Revenue</span>
+                <span class="badge bg-success-subtle text-success" style="font-size: 0.7rem;">+14.2% MoM</span>
+              </div>
+              <div class="fs-3 fw-bold text-dark tracking-tight mb-1">$48,250.00</div>
+              <div class="text-muted small">Normalized across active cycles</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="dashboard-stat-card h-100">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="font-label-caps text-muted">Annual Run-Rate (ARR)</span>
+                <span class="badge bg-light text-dark border" style="font-size: 0.7rem;">Forecasted</span>
+              </div>
+              <div class="fs-3 fw-bold text-dark tracking-tight mb-1">$579,000.00</div>
+              <div class="text-muted small">Annualized recurring run-rate</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="dashboard-stat-card h-100">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="font-label-caps text-muted">Active Subscriptions</span>
+                <span class="badge bg-success-subtle text-success" style="font-size: 0.7rem;">98.4% Retention</span>
+              </div>
+              <div class="fs-3 fw-bold text-dark tracking-tight mb-1">1,248</div>
+              <div class="text-muted small">0 unbilled recurring periods</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Small Chart: Monthly Revenue Growth & Trend -->
+        <div class="dashboard-chart-box text-start">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <span class="fw-bold small text-dark d-block">Monthly Recurring Revenue Trend (Last 6 Months)</span>
+              <span class="text-muted" style="font-size: 0.75rem;">Consolidated billing aggregation &bull; All figures in USD</span>
+            </div>
+            <div class="d-flex gap-2">
+              <span class="badge bg-light text-dark border">6 Months</span>
+              <span class="badge bg-dark text-white">MRR Growth</span>
             </div>
           </div>
 
-          <!-- Pulsing Audio Frequency Bars -->
-          <div class="d-flex align-items-center gap-1" style="height: 24px;">
-            <span class="bg-dark rounded-pill" style="width: 3px; height: 16px;"></span>
-            <span class="bg-dark rounded-pill" style="width: 3px; height: 24px;"></span>
-            <span class="bg-dark rounded-pill" style="width: 3px; height: 12px;"></span>
-            <span class="bg-dark rounded-pill" style="width: 3px; height: 20px;"></span>
-            <span class="bg-secondary rounded-pill opacity-50" style="width: 3px; height: 14px;"></span>
-            <span class="bg-secondary rounded-pill opacity-50" style="width: 3px; height: 8px;"></span>
-            <span class="bg-secondary rounded-pill opacity-50" style="width: 3px; height: 5px;"></span>
-          </div>
+          <!-- Clean SVG Line & Area Chart -->
+          <svg viewBox="0 0 800 180" class="w-100" style="height: 140px; overflow: visible;">
+            <defs>
+              <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#000000" stop-opacity="0.12"/>
+                <stop offset="100%" stop-color="#000000" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <!-- Grid lines -->
+            <line x1="40" y1="20" x2="760" y2="20" stroke="#f1f5f9" stroke-width="1"/>
+            <line x1="40" y1="60" x2="760" y2="60" stroke="#f1f5f9" stroke-width="1"/>
+            <line x1="40" y1="100" x2="760" y2="100" stroke="#f1f5f9" stroke-width="1"/>
+            <line x1="40" y1="140" x2="760" y2="140" stroke="#e2e8f0" stroke-width="1"/>
+            <!-- Area gradient fill -->
+            <polygon points="60,130 180,115 300,95 420,80 560,55 700,32 700,140 60,140" fill="url(#chartFill)"/>
+            <!-- Upward growth line -->
+            <polyline points="60,130 180,115 300,95 420,80 560,55 700,32" fill="none" stroke="#000000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Data points -->
+            <circle cx="60" cy="130" r="4" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+            <circle cx="180" cy="115" r="4" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+            <circle cx="300" cy="95" r="4" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+            <circle cx="420" cy="80" r="4" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+            <circle cx="560" cy="55" r="4" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+            <circle cx="700" cy="32" r="5" fill="#000000" stroke="#ffffff" stroke-width="2"/>
+            <!-- X-Axis Labels -->
+            <text x="60" y="160" font-size="11" fill="#64748b" text-anchor="middle" font-family="sans-serif">May ($31k)</text>
+            <text x="180" y="160" font-size="11" fill="#64748b" text-anchor="middle" font-family="sans-serif">Jun ($34k)</text>
+            <text x="300" y="160" font-size="11" fill="#64748b" text-anchor="middle" font-family="sans-serif">Jul ($38k)</text>
+            <text x="420" y="160" font-size="11" fill="#64748b" text-anchor="middle" font-family="sans-serif">Aug ($41k)</text>
+            <text x="560" y="160" font-size="11" fill="#64748b" text-anchor="middle" font-family="sans-serif">Sep ($44k)</text>
+            <text x="700" y="160" font-size="11" fill="#000000" font-weight="bold" text-anchor="middle" font-family="sans-serif">Oct ($48.2k)</text>
+          </svg>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 3. Trust Strip -->
-  <section class="trust-strip">
-    <div class="landing-container text-center">
-      <p class="font-label-caps text-muted mb-4">Trusted by Industry Leaders & Modern Teams</p>
-      <div class="d-flex flex-wrap justify-content-center align-items-center gap-4 gap-md-5 opacity-75">
-        <span class="trust-logo-pill">
-          <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/></svg>
-          Vertex AI
-        </span>
-        <span class="trust-logo-pill">
-          <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/></svg>
-          AuraLabs
-        </span>
-        <span class="trust-logo-pill">
-          <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg>
-          SaaSFlow
-        </span>
-        <span class="trust-logo-pill">
-          <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M3 2v12h10V2H3zm-1 0a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V2z"/></svg>
-          OmniVoice
-        </span>
-        <span class="trust-logo-pill">
-          <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7z"/></svg>
-          QuantCloud
-        </span>
-      </div>
-    </div>
-  </section>
-
-  <!-- 4. Modular Audio Intelligence (3 Feature Cards Grid) -->
-  <section class="landing-container" id="capabilities" style="margin-bottom: 140px;">
+  <!-- 3. Complete Subscription & Revenue Engine (3 Feature Cards Grid) -->
+  <section class="landing-container" id="features" style="margin-bottom: 140px;">
     <div class="text-center mb-5">
-      <h2 class="font-h2 mb-3">Modular Audio Intelligence</h2>
+      <h2 class="font-h2 mb-3">Subscription Engine &amp; Billing Automation</h2>
       <p class="text-muted mx-auto" style="max-width: 580px;">
-        State-of-the-art generative voice pipelines paired with automated subscription billing and scalable cloud architecture.
+        Purpose-built infrastructure to manage recurring relationships, ensure predictable cashflow, and catch leaks early.
       </p>
     </div>
 
     <div class="row g-4">
-      <!-- Feature Card 1 -->
+      <!-- Feature Card 1: Subscriptions -->
       <div class="col-md-4">
         <div class="feature-card">
           <div class="feature-card-icon-box">
             <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-              <line x1="12" y1="19" x2="12" y2="23"/>
-              <line x1="8" y1="23" x2="16" y2="23"/>
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
             </svg>
           </div>
-          <h3 class="fs-4 fw-bold mb-2">Text to Speech</h3>
+          <h3 class="fs-4 fw-bold mb-2">Subscriptions</h3>
           <p class="text-muted small leading-relaxed flex-grow-1 mb-4">
-            Convert written text into expressive, human-like voice synthesis with sub-50ms latency across 40+ global languages.
+            Configure flexible recurring plans with customizable billing cycles. Automate state transitions from Quotation to Confirmed and Active renewal with zero manual intervention.
           </p>
           <a href="{% url 'catalog:plan_list' %}" class="fw-bold small text-dark text-decoration-none d-inline-flex align-items-center">
-            Explore TTS <span class="ms-1">&rarr;</span>
+            Explore Subscriptions <span class="ms-1">&rarr;</span>
           </a>
         </div>
       </div>
 
-      <!-- Feature Card 2 -->
+      <!-- Feature Card 2: Billing -->
       <div class="col-md-4">
         <div class="feature-card">
           <div class="feature-card-icon-box">
             <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-              <path d="M2 10v3M6 6v11M10 3v18M14 8v7M18 5v13M22 10v3" stroke-linecap="round"/>
+              <rect x="2" y="3" width="20" height="18" rx="2"/>
+              <line x1="6" y1="8" x2="18" y2="8"/>
+              <line x1="6" y1="12" x2="14" y2="12"/>
+              <line x1="6" y1="16" x2="10" y2="16"/>
             </svg>
           </div>
-          <h3 class="fs-4 fw-bold mb-2">Speech to Text</h3>
+          <h3 class="fs-4 fw-bold mb-2">Billing</h3>
           <p class="text-muted small leading-relaxed flex-grow-1 mb-4">
-            High-fidelity automated transcription, speaker diarization, and semantic timestamping designed for enterprise workloads.
+            Automate scheduled recurring invoice generation. Enforce period-level uniqueness constraints, apply transparent tax rules, and track balances due with offline payment receipting.
           </p>
           <a href="{% url 'catalog:plan_list' %}" class="fw-bold small text-dark text-decoration-none d-inline-flex align-items-center">
-            Explore STT <span class="ms-1">&rarr;</span>
+            Explore Billing <span class="ms-1">&rarr;</span>
           </a>
         </div>
       </div>
 
-      <!-- Feature Card 3 -->
+      <!-- Feature Card 3: Revenue Intelligence -->
       <div class="col-md-4">
         <div class="feature-card">
           <div class="feature-card-icon-box">
             <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
             </svg>
           </div>
-          <h3 class="fs-4 fw-bold mb-2">Voice Cloning</h3>
+          <h3 class="fs-4 fw-bold mb-2">Revenue Intelligence</h3>
           <p class="text-muted small leading-relaxed flex-grow-1 mb-4">
-            Instantaneous few-shot voice replication. Retain vocal accents, natural cadence, and nuanced emotional expressivity.
+            Surface normalized MRR and ARR run-rates, run predictive What-If price elasticity simulations, and uncover unbilled active subscription cycles before revenue leaks.
           </p>
-          <a href="{% url 'catalog:plan_list' %}" class="fw-bold small text-dark text-decoration-none d-inline-flex align-items-center">
-            Explore Cloning <span class="ms-1">&rarr;</span>
+          <a href="#intelligence" class="fw-bold small text-dark text-decoration-none d-inline-flex align-items-center">
+            Explore Intelligence <span class="ms-1">&rarr;</span>
           </a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 5. Product Deep Dive / Precision Control -->
-  <section class="landing-container" style="margin-bottom: 140px;">
+  <!-- 4. How It Works / Proactive Retention & Churn Risk Preview -->
+  <section class="landing-container" id="how-it-works" style="margin-bottom: 140px;">
     <div class="row g-5 align-items-center">
       <div class="col-lg-5">
-        <span class="font-label-caps text-muted d-block mb-2">Precision Control</span>
-        <h2 class="font-h2 mb-4">Fine-tune every syllable</h2>
+        <span class="font-label-caps text-muted d-block mb-2">How It Works</span>
+        <h2 class="font-h2 mb-4">Proactive churn risk &amp; health scoring</h2>
         <p class="text-muted mb-4" style="line-height: 1.7;">
-          Engineered for architects who demand complete granular authority over tone, latency, pause cadence, and phoneme balance.
+          Subscription businesses lose revenue when delinquent accounts go unnoticed. BrightLoop continuously monitors account settlement velocity, invoice aging, and renewal frequency.
         </p>
 
         <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
@@ -240,19 +255,19 @@
             <svg class="text-dark flex-shrink-0 mt-1" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
               <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
             </svg>
-            <span class="small text-muted">Controllable stability and clarity thresholds for studio-grade output.</span>
+            <span class="small text-muted">Continuous subscriber health scoring (0–100) computed from payment timeliness.</span>
           </li>
           <li class="d-flex align-items-start gap-3">
             <svg class="text-dark flex-shrink-0 mt-1" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
               <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
             </svg>
-            <span class="small text-muted">Sub-millisecond audio streaming buffers for real-time conversational agents.</span>
+            <span class="small text-muted">Automatic early warning alerts for accounts showing consecutive invoice delays.</span>
           </li>
           <li class="d-flex align-items-start gap-3">
             <svg class="text-dark flex-shrink-0 mt-1" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
               <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
             </svg>
-            <span class="small text-muted">Automated billing telemetry linked to usage per character, word, or token.</span>
+            <span class="small text-muted">Seamless handoff to collections or customer success prior to renewal dates.</span>
           </li>
         </ul>
       </div>
@@ -261,48 +276,66 @@
         <div class="editor-card">
           <div class="editor-inner-card">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <span class="font-label-caps text-muted">Transcript Editor</span>
-              <span class="badge bg-light text-dark border small">Aura Studio v2</span>
+              <div>
+                <span class="font-label-caps text-muted d-block" style="font-size: 0.75rem;">Account Intelligence</span>
+                <span class="fw-bold text-dark">Subscriber Health &amp; Churn Risk Score</span>
+              </div>
+              <span class="badge bg-light text-dark border small">Account #BL-8942</span>
             </div>
 
-            <!-- Transcript box -->
-            <div class="bg-light p-3 rounded mb-4 font-monospace small" style="border: 1px solid var(--theme-outline-variant);">
-              "Hello, world. <span class="bg-dark text-white px-2 py-0.5 rounded">This is</span> a synthesized neural voice output with zero artifacts."
+            <!-- Health Score Badge Banner -->
+            <div class="p-3 rounded mb-4 d-flex justify-content-between align-items-center" style="background-color: #f8fafc; border: 1px solid var(--theme-outline-variant);">
+              <div>
+                <div class="d-flex align-items-baseline gap-2 mb-1">
+                  <span class="display-6 fw-bold text-dark">92</span>
+                  <span class="text-muted fw-bold">/ 100</span>
+                </div>
+                <span class="text-muted small">Overall Health Index: Excellent</span>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-success text-white px-3 py-2 mb-1 d-inline-block">Low Churn Risk</span>
+                <div class="text-muted" style="font-size: 0.75rem;">Predicted Churn Probability: 2.4%</div>
+              </div>
             </div>
 
-            <!-- Precision sliders -->
+            <!-- Precision Health Meters -->
             <div class="d-flex flex-column gap-3 mb-4">
               <div>
                 <div class="d-flex justify-content-between text-muted small mb-1">
-                  <span>Stability</span>
-                  <span class="fw-bold text-dark">75%</span>
+                  <span>On-Time Invoice Settlement Rate</span>
+                  <span class="fw-bold text-dark">96% (12 of 12 paid on time)</span>
                 </div>
                 <div class="progress" style="height: 6px;">
-                  <div class="progress-bar bg-dark" role="progressbar" style="width: 75%;"></div>
+                  <div class="progress-bar bg-dark" role="progressbar" style="width: 96%;"></div>
                 </div>
               </div>
               <div>
                 <div class="d-flex justify-content-between text-muted small mb-1">
-                  <span>Clarity & Boost</span>
-                  <span class="fw-bold text-dark">90%</span>
+                  <span>Contract Longevity &amp; Renewal Cadence</span>
+                  <span class="fw-bold text-dark">88% (18 continuous billing periods)</span>
                 </div>
                 <div class="progress" style="height: 6px;">
-                  <div class="progress-bar bg-dark" role="progressbar" style="width: 90%;"></div>
+                  <div class="progress-bar bg-dark" role="progressbar" style="width: 88%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Payment Method Reliability</span>
+                  <span class="fw-bold text-dark">100% (Zero recorded payment disputes)</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-dark" role="progressbar" style="width: 100%;"></div>
                 </div>
               </div>
             </div>
 
-            <!-- Scrubber bar -->
-            <div class="d-flex align-items-center gap-3 pt-3 border-top">
-              <button class="btn btn-dark rounded-circle d-flex align-items-center justify-content-center p-0 flex-shrink-0" style="width: 38px; height: 38px;">
-                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                  <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
-                </svg>
-              </button>
-              <div class="progress flex-grow-1" style="height: 4px;">
-                <div class="progress-bar bg-dark" style="width: 35%;"></div>
+            <!-- Status Callout -->
+            <div class="d-flex align-items-center justify-content-between pt-3 border-top text-muted small">
+              <div class="d-flex align-items-center gap-2">
+                <span class="rounded-circle bg-success" style="width: 8px; height: 8px; display: inline-block;"></span>
+                <span>Next scheduled renewal: in 14 days &bull; No overdue balance</span>
               </div>
-              <span class="font-monospace small text-muted">0:04 / 0:12</span>
+              <span class="font-monospace text-dark fw-bold">$299.00 / mo</span>
             </div>
           </div>
         </div>
@@ -310,132 +343,186 @@
     </div>
   </section>
 
-  <!-- 6. Developer / API Section (Dark Feature Panel) -->
-  <section class="landing-container" id="developer-api" style="margin-bottom: 140px;">
+  <!-- 5. Revenue Leak Detector (Dark Feature Panel) -->
+  <section class="landing-container" id="intelligence" style="margin-bottom: 140px;">
     <div class="row g-5 align-items-center">
-      <!-- Dark Code Terminal Card (24px radius, #111318) -->
+      <!-- Dark Feature Panel (Revenue Leak Detector) -->
       <div class="col-lg-6 order-2 order-lg-1">
         <div class="dark-feature-panel">
-          <div class="window-dots">
-            <span class="window-dot" style="background-color: #ef4444;"></span>
-            <span class="window-dot" style="background-color: #eab308;"></span>
-            <span class="window-dot" style="background-color: #22c55e;"></span>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="window-dots mb-0">
+              <span class="window-dot" style="background-color: #ef4444;"></span>
+              <span class="window-dot" style="background-color: #eab308;"></span>
+              <span class="window-dot" style="background-color: #22c55e;"></span>
+            </div>
+            <span class="badge bg-secondary text-white font-monospace" style="font-size: 0.7rem;">LEAK DETECTOR v2.4</span>
           </div>
 
-          <pre class="code-pre"><code><span class="code-keyword">import</span> brightloop
+          <!-- Diagnostic Leak Items -->
+          <div class="leak-alert-item leak-critical">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-danger fw-bold small font-monospace">[CRITICAL] Missing Invoices Detected</span>
+              <span class="badge bg-danger text-white" style="font-size: 0.65rem;">Action Needed</span>
+            </div>
+            <div class="text-light small mb-1">2 active subscriptions in current period have no invoice generated.</div>
+            <div class="text-white-50 font-monospace" style="font-size: 0.75rem;">Revenue at risk: $3,450.00 &bull; Subscriptions: #BL-1024, #BL-1089</div>
+          </div>
 
-client = brightloop.Client(api_key=<span class="code-string">"bl_live_sec_9941x"</span>)
+          <div class="leak-alert-item leak-warning">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-warning fw-bold small font-monospace">[WARNING] Past-Due Receivables</span>
+              <span class="badge bg-warning text-dark" style="font-size: 0.65rem;">15+ Days Overdue</span>
+            </div>
+            <div class="text-light small mb-1">3 issued invoices have exceeded Net-15 payment terms.</div>
+            <div class="text-white-50 font-monospace" style="font-size: 0.75rem;">Outstanding balance: $5,120.00 &bull; Automated reminders triggered</div>
+          </div>
 
-<span class="code-comment"># Generate speech stream & track billable seconds</span>
-response = client.audio.speech.create(
-    model=<span class="code-string">"aura-v2-english"</span>,
-    voice=<span class="code-string">"echo"</span>,
-    input=<span class="code-string">"Precision voice infrastructure engineered for scale."</span>
-)
+          <div class="leak-alert-item leak-success">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-success fw-bold small font-monospace">[PROTECTED] Duplicate Billing Blocked</span>
+              <span class="badge bg-success text-white" style="font-size: 0.65rem;">Resolved</span>
+            </div>
+            <div class="text-light small mb-1">Unique constraint prevented double-billing on Sub #BL-0832.</div>
+            <div class="text-white-50 font-monospace" style="font-size: 0.75rem;">Prevented double charge: $950.00 &bull; Database rule enforced</div>
+          </div>
 
-response.stream_to_file(<span class="code-string">"output.mp3"</span>)
-<span class="code-comment"># &check; Invoice line auto-billed via recurring contract</span></code></pre>
+          <div class="leak-alert-item">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-info fw-bold small font-monospace">[VERIFIED] Line-Item Reconciliation</span>
+              <span class="badge bg-dark text-white-50 border border-secondary" style="font-size: 0.65rem;">100% Matched</span>
+            </div>
+            <div class="text-light small">All 148 active contract line items reconciled with catalog unit prices.</div>
+          </div>
         </div>
       </div>
 
-      <!-- Developer Text Info -->
+      <!-- Explanatory Text Column -->
       <div class="col-lg-6 order-1 order-lg-2">
-        <h2 class="font-h2 mb-4">Built for Developers</h2>
+        <h2 class="font-h2 mb-4">Catch revenue leaks before they cost you</h2>
         <p class="text-muted mb-4" style="line-height: 1.7;">
-          Simple REST, WebSocket, and SDK endpoints to embed intelligent voice and automated subscription contracts directly into your production codebase.
+          Subscription businesses leak up to 8% of annual revenue through forgotten invoice generation, uncollected past-due receivables, and untracked cancellations. BrightLoop continuously audits your subscription ledger to pinpoint leaks before they compound.
         </p>
 
         <div class="d-flex flex-wrap gap-2 mb-4">
-          <span class="badge bg-light text-dark border px-3 py-2">Low Latency &lt;50ms</span>
-          <span class="badge bg-light text-dark border px-3 py-2">REST &amp; WebSocket APIs</span>
-          <span class="badge bg-light text-dark border px-3 py-2">Python &amp; Node SDKs</span>
+          <span class="badge bg-light text-dark border px-3 py-2">Automated Ledger Audit</span>
+          <span class="badge bg-light text-dark border px-3 py-2">Zero Duplicate Billing</span>
+          <span class="badge bg-light text-dark border px-3 py-2">Aging Receivables Alerts</span>
+          <span class="badge bg-light text-dark border px-3 py-2">Line-Item Accuracy</span>
         </div>
 
         <a href="{% url 'catalog:plan_list' %}" class="fw-bold text-dark text-decoration-none d-inline-flex align-items-center">
-          Read the Documentation <span class="ms-1">&rarr;</span>
+          Explore Revenue Intelligence <span class="ms-1">&rarr;</span>
         </a>
       </div>
     </div>
   </section>
 
-  <!-- 7. Use Cases Grid (6 Modular Cards) -->
-  <section class="landing-container" id="applications" style="margin-bottom: 140px;">
+  <!-- 6. Use Cases Grid (6 Modular Cards) -->
+  <section class="landing-container" id="use-cases" style="margin-bottom: 140px;">
     <div class="text-center mb-5">
-      <h2 class="font-h2 mb-3">Endless Applications</h2>
+      <h2 class="font-h2 mb-3">Engineered for Every Subscription Model</h2>
       <p class="text-muted mx-auto" style="max-width: 580px;">
-        Powering interactive conversational agents, accessibility tools, narrative media, and gaming across millions of streams.
+        Flexible recurring billing infrastructure adapting to the specific lifecycle demands of your industry.
       </p>
     </div>
 
     <div class="row g-4">
+      <!-- 1. Gyms -->
       <div class="col-md-4">
         <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
           <div class="mb-3 text-dark">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"/>
+            </svg>
           </div>
-          <h4 class="fs-5 fw-bold mb-2">Voice Assistants</h4>
-          <p class="text-muted small leading-relaxed mb-0">Human-sounding customer support agents with fluid turn-taking.</p>
+          <h4 class="fs-5 fw-bold mb-2">Gyms</h4>
+          <p class="text-muted small leading-relaxed mb-0">Monthly and annual fitness passes, automated recurring membership dues, and locker rental add-ons.</p>
         </div>
       </div>
 
+      <!-- 2. SaaS tools -->
       <div class="col-md-4">
         <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
           <div class="mb-3 text-dark">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
           </div>
-          <h4 class="fs-5 fw-bold mb-2">Audiobooks & Narration</h4>
-          <p class="text-muted small leading-relaxed mb-0">Multi-character long-form narration with dynamic pacing and emotional intonation.</p>
+          <h4 class="fs-5 fw-bold mb-2">SaaS Tools</h4>
+          <p class="text-muted small leading-relaxed mb-0">Tiered software subscriptions, per-seat recurring billing, automated renewals, and instant proration handling.</p>
         </div>
       </div>
 
+      <!-- 3. Internet providers -->
       <div class="col-md-4">
         <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
           <div class="mb-3 text-dark">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+              <line x1="12" y1="20" x2="12.01" y2="20"/>
+            </svg>
           </div>
-          <h4 class="fs-5 fw-bold mb-2">Global Localization</h4>
-          <p class="text-muted small leading-relaxed mb-0">Translate and dub spoken media in 40+ native accents seamlessly.</p>
+          <h4 class="fs-5 fw-bold mb-2">Internet Providers</h4>
+          <p class="text-muted small leading-relaxed mb-0">Fixed-cycle broadband contracts, itemized modem lease fees, automated statements, and Net-15 terms.</p>
         </div>
       </div>
 
+      <!-- 4. Magazines -->
       <div class="col-md-4">
         <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
           <div class="mb-3 text-dark">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="6 2 18 2 18 6 6 6 6 2"/><rect x="3" y="6" width="18" height="14" rx="2"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
           </div>
-          <h4 class="fs-5 fw-bold mb-2">Gaming & NPCs</h4>
-          <p class="text-muted small leading-relaxed mb-0">Immersive procedural voice generation for in-game characters.</p>
+          <h4 class="fs-5 fw-bold mb-2">Magazines</h4>
+          <p class="text-muted small leading-relaxed mb-0">Print and digital recurring publications, cycle-based fulfillment tracking, and seamless subscription renewals.</p>
         </div>
       </div>
 
+      <!-- 5. Tuition centres -->
       <div class="col-md-4">
         <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
           <div class="mb-3 text-dark">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><path d="M15 10H9l-2 9h2l1-4h4l1 4h2l-2-9z"/></svg>
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </svg>
           </div>
-          <h4 class="fs-5 fw-bold mb-2">Accessibility</h4>
-          <p class="text-muted small leading-relaxed mb-0">Real-time screen reading and assistive voice synthesis for accessibility compliance.</p>
+          <h4 class="fs-5 fw-bold mb-2">Tuition Centres</h4>
+          <p class="text-muted small leading-relaxed mb-0">Term-based student course enrollments, automated monthly tuition invoicing, and offline fee reconciliation.</p>
         </div>
       </div>
 
+      <!-- 6. Memberships -->
       <div class="col-md-4">
         <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
           <div class="mb-3 text-dark">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
           </div>
-          <h4 class="fs-5 fw-bold mb-2">Podcasts & Studio</h4>
-          <p class="text-muted small leading-relaxed mb-0">Automated show intros, vocal enhancements, and synthetic co-hosts.</p>
+          <h4 class="fs-5 fw-bold mb-2">Memberships</h4>
+          <p class="text-muted small leading-relaxed mb-0">Professional associations, social clubs, recurring community subscriptions, and unified account statements.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 8. Simple, Transparent Pricing (Dynamic from Plan model) -->
+  <!-- 7. Simple, Transparent Pricing (Dynamic from Plan model) -->
   <section class="landing-container" id="pricing" style="margin-bottom: 140px;">
     <div class="text-center mb-5">
       <h2 class="font-h2 mb-3">Simple, Transparent Pricing</h2>
       <p class="text-muted mx-auto" style="max-width: 580px;">
-        Predictable recurring tiers designed to scale from indie creators to global infrastructure.
+        Predictable recurring plans engineered to scale from initial rollout to enterprise subscription volume.
       </p>
     </div>
 
@@ -457,9 +544,9 @@ response.stream_to_file(<span class="code-string">"output.mp3"</span>)
 
             <p class="text-muted small mb-4 flex-grow-1">
               {% if plan.renewable %}
-                Full automated renewal support, instant provisioning, and recurring invoicing.
+                Automated renewal support, period-level invoicing, and full recurring ledger tracking.
               {% else %}
-                One-time or flexible pay-as-you-go capacity for targeted workflows.
+                Flexible one-time billing and scheduled recurring provisioning.
               {% endif %}
             </p>
 
@@ -473,73 +560,55 @@ response.stream_to_file(<span class="code-string">"output.mp3"</span>)
           </div>
         </div>
       {% empty %}
-        <!-- Fallback static plan tiers matching DESIGN.md if database has no seeded plans -->
-        <div class="col-md-6 col-lg-3">
-          <div class="pricing-card">
-            <h3 class="fs-5 fw-bold text-dark mb-2">Starter</h3>
-            <div class="mb-4"><span class="display-6 fw-bold text-dark">$25</span><span class="text-muted small">/mo</span></div>
-            <p class="text-muted small mb-4 flex-grow-1">Basic synthetic voice generation with automated weekly billing.</p>
-            <a href="{% url 'accounts:signup' %}" class="btn btn-outline-secondary rounded-pill py-2">Start Trial</a>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-          <div class="pricing-card pricing-card-popular">
-            <div class="popular-badge">Most Popular</div>
-            <h3 class="fs-5 fw-bold text-dark mb-2">Professional</h3>
-            <div class="mb-4"><span class="display-6 fw-bold text-dark">$99</span><span class="text-muted small">/mo</span></div>
-            <p class="text-muted small mb-4 flex-grow-1">Studio quality models, high concurrency, and automated monthly billing.</p>
-            <a href="{% url 'accounts:signup' %}" class="btn btn-primary rounded-pill py-2">Go Pro</a>
-          </div>
-        </div>
-        <div class="col-md-6 col-lg-3">
-          <div class="pricing-card">
-            <h3 class="fs-5 fw-bold text-dark mb-2">Enterprise</h3>
-            <div class="mb-4"><span class="display-6 fw-bold text-dark">$999</span><span class="text-muted small">/yr</span></div>
-            <p class="text-muted small mb-4 flex-grow-1">Dedicated cloud capacity, custom SLAs, and custom tax invoicing.</p>
-            <a href="{% url 'accounts:signup' %}" class="btn btn-outline-secondary rounded-pill py-2">Contact Sales</a>
+        <!-- Empty state if no plans are configured in the database -->
+        <div class="col-12 text-center py-5">
+          <div class="p-5 border rounded-4 bg-light mx-auto" style="max-width: 540px;">
+            <h4 class="fw-bold mb-2">No Plans Available Yet</h4>
+            <p class="text-muted small mb-4">Subscription plans are currently being configured by the system administrator.</p>
+            <a href="{% url 'accounts:signup' %}" class="btn btn-primary rounded-pill px-4">Register for Updates</a>
           </div>
         </div>
       {% endfor %}
     </div>
   </section>
 
-  <!-- 9. Enterprise Security & Scale Section -->
-  <section class="landing-container border-top border-bottom py-5" id="enterprise" style="margin-bottom: 140px;">
+  <!-- 8. Real Architecture Features (Replacing Trust Strip and SOC 2/GDPR/HIPAA/SLA) -->
+  <section class="landing-container border-top border-bottom py-5" style="margin-bottom: 140px;">
     <div class="row g-5 align-items-center py-4">
-      <div class="col-lg-6">
-        <h2 class="font-h2 mb-3">Enterprise-grade security and scale</h2>
+      <div class="col-lg-5">
+        <h2 class="font-h2 mb-3">Engineered for Reliability &amp; Data Integrity</h2>
         <p class="text-muted mb-4" style="line-height: 1.7;">
-          Engineered for mission-critical infrastructure. Multi-region deployments, automated audit trails, and strict compliance certification.
+          BrightLoop is built with strict database constraints, hardened authentication policies, and multi-tier access controls to guarantee total financial accuracy.
         </p>
         <a href="{% url 'catalog:plan_list' %}" class="fw-bold text-dark text-decoration-none d-inline-flex align-items-center">
-          Learn about Enterprise <span class="ms-1">&rarr;</span>
+          View System Architecture <span class="ms-1">&rarr;</span>
         </a>
       </div>
 
-      <div class="col-lg-6">
+      <div class="col-lg-7">
         <div class="row g-3">
-          <div class="col-6">
-            <div class="security-tile">
-              <span class="fw-bold text-dark fs-5">SOC 2 Type II</span>
-              <span class="text-muted small">Certified</span>
+          <div class="col-sm-6">
+            <div class="security-tile h-100">
+              <span class="fw-bold text-dark fs-6 mb-1">Role-Based Access</span>
+              <span class="text-muted small">Strict permissions separating Customer self-service, Staff operations, and System Administrators.</span>
             </div>
           </div>
-          <div class="col-6">
-            <div class="security-tile">
-              <span class="fw-bold text-dark fs-5">GDPR</span>
-              <span class="text-muted small">Compliant</span>
+          <div class="col-sm-6">
+            <div class="security-tile h-100">
+              <span class="fw-bold text-dark fs-6 mb-1">Password Rules</span>
+              <span class="text-muted small">Hardened password complexity requiring uppercase, lowercase, numeric digits, and special characters.</span>
             </div>
           </div>
-          <div class="col-6">
-            <div class="security-tile">
-              <span class="fw-bold text-dark fs-5">HIPAA</span>
-              <span class="text-muted small">Ready</span>
+          <div class="col-sm-6">
+            <div class="security-tile h-100">
+              <span class="fw-bold text-dark fs-6 mb-1">No Duplicate Billing Per Period</span>
+              <span class="text-muted small">Unique database constraints on subscription contract and period start eliminate accidental double-billing.</span>
             </div>
           </div>
-          <div class="col-6">
-            <div class="security-tile">
-              <span class="fw-bold text-dark fs-5">99.99%</span>
-              <span class="text-muted small">Uptime SLA</span>
+          <div class="col-sm-6">
+            <div class="security-tile h-100">
+              <span class="fw-bold text-dark fs-6 mb-1">Database-Level Aggregation</span>
+              <span class="text-muted small">Optimized SQL grouping and subquery annotations compute MRR, ARR, and financial metrics in real time.</span>
             </div>
           </div>
         </div>
@@ -547,72 +616,45 @@ response.stream_to_file(<span class="code-string">"output.mp3"</span>)
     </div>
   </section>
 
-  <!-- 10. Ready to Build Pre-Footer Banner -->
+  <!-- 9. Pre-Footer Call to Action -->
   <section class="landing-container text-center" style="margin-bottom: 120px;">
-    <h2 class="display-4 fw-bold tracking-tight mb-4">Ready to build?</h2>
+    <h2 class="display-4 fw-bold tracking-tight mb-4">Ready to automate your billing?</h2>
     <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-pill px-5 py-3 fs-5 shadow">
       Get Started with BrightLoop
     </a>
   </section>
 
-  <!-- 11. Minimalist Modern Footer -->
+  <!-- 10. Minimalist Modern Footer -->
   <footer class="landing-footer">
     <div class="landing-container">
       <div class="row g-5 mb-5">
-        <!-- Brand & Newsletter -->
-        <div class="col-lg-4">
+        <!-- Brand Column (No newsletter input) -->
+        <div class="col-lg-5">
           <div class="fs-4 fw-bold tracking-tight text-dark mb-3">BrightLoop</div>
-          <p class="text-muted small mb-4" style="max-width: 300px; line-height: 1.6;">
-            Precision-engineered voice and recurring subscription infrastructure for the next generation of applications.
+          <p class="text-muted small mb-0" style="max-width: 360px; line-height: 1.6;">
+            Subscriptions, billing and revenue, in one place. Engineered for reliability, financial precision, and automated contract management.
           </p>
-
-          <label class="form-label font-label-caps text-dark mb-2">Subscribe to platform updates</label>
-          <div class="input-group" style="max-width: 320px;">
-            <input type="email" class="form-control" placeholder="Email address" style="border-radius: 8px 0 0 8px !important;">
-            <button class="btn btn-primary" type="button" style="border-radius: 0 8px 8px 0 !important;">Join</button>
-          </div>
         </div>
 
-        <!-- Links Column 1: Products -->
-        <div class="col-6 col-md-3 col-lg-2">
-          <h5 class="font-label-caps text-dark mb-3">Products</h5>
-          <ul class="list-unstyled d-flex flex-column gap-2">
-            <li><a href="#capabilities">Text to Speech</a></li>
-            <li><a href="#capabilities">Speech to Text</a></li>
-            <li><a href="#capabilities">Voice Cloning</a></li>
+        <!-- Links Column 1: Platform -->
+        <div class="col-6 col-md-3 col-lg-3">
+          <h5 class="font-label-caps text-dark mb-3">Platform</h5>
+          <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#intelligence">Revenue Intelligence</a></li>
             <li><a href="#pricing">Pricing Plans</a></li>
           </ul>
         </div>
 
-        <!-- Links Column 2: Developers -->
-        <div class="col-6 col-md-3 col-lg-2">
-          <h5 class="font-label-caps text-dark mb-3">Developers</h5>
-          <ul class="list-unstyled d-flex flex-column gap-2">
-            <li><a href="#developer-api">Documentation</a></li>
-            <li><a href="#developer-api">API Reference</a></li>
-            <li><a href="#enterprise">Status &amp; Uptime</a></li>
-            <li><a href="#capabilities">Changelog</a></li>
-          </ul>
-        </div>
-
-        <!-- Links Column 3: Company -->
-        <div class="col-6 col-md-3 col-lg-2">
-          <h5 class="font-label-caps text-dark mb-3">Company</h5>
-          <ul class="list-unstyled d-flex flex-column gap-2">
-            <li><a href="#">About Us</a></li>
-            <li><a href="#">Engineering Blog</a></li>
-            <li><a href="#">Careers</a></li>
-            <li><a href="#">Contact</a></li>
-          </ul>
-        </div>
-
-        <!-- Links Column 4: Legal -->
-        <div class="col-6 col-md-3 col-lg-2">
-          <h5 class="font-label-caps text-dark mb-3">Legal</h5>
-          <ul class="list-unstyled d-flex flex-column gap-2">
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Security Overview</a></li>
+        <!-- Links Column 2: Quick Links -->
+        <div class="col-6 col-md-4 col-lg-4">
+          <h5 class="font-label-caps text-dark mb-3">Quick Access</h5>
+          <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
+            <li><a href="{% url 'portal:landing' %}">Customer Portal</a></li>
+            <li><a href="{% url 'catalog:plan_list' %}">Browse Plans</a></li>
+            <li><a href="{% url 'accounts:login' %}">Log In</a></li>
+            <li><a href="{% url 'accounts:signup' %}">Create Account</a></li>
           </ul>
         </div>
       </div>
@@ -620,15 +662,11 @@ response.stream_to_file(<span class="code-string">"output.mp3"</span>)
       <!-- Footer Bottom Bar -->
       <div class="pt-4 border-top d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-muted small">
         <div>
-          &copy; {% now "Y" %} BrightLoop Inc. Precision-engineered subscription infrastructure.
+          &copy; {% now "Y" %} BrightLoop. All rights reserved.
         </div>
-        <div class="d-flex align-items-center gap-3">
-          <a href="#" class="text-muted" title="Language">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-          </a>
-          <a href="#" class="text-muted" title="Community">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          </a>
+        <div class="d-flex align-items-center gap-4">
+          <a href="{% url 'catalog:plan_list' %}" class="text-muted">Subscription Catalog</a>
+          <a href="{% url 'accounts:login' %}" class="text-muted">Client Portal</a>
         </div>
       </div>
     </div>
