@@ -82,8 +82,8 @@ class BillingModelTests(TestCase):
             due_date=self.today + timedelta(days=14),
         )
 
-        self.assertTrue(inv.invoice_number.startswith("INV-"))
-        self.assertEqual(inv.number, inv.invoice_number)
+        self.assertTrue(inv.number.startswith("INV-"))
+        self.assertEqual(inv.invoice_number, inv.number)
         self.assertEqual(inv.discount_amount, Decimal("10.00"))
         self.assertEqual(inv.tax_amount, Decimal("16.20"))
         self.assertEqual(inv.amount_paid, Decimal("0.00"))
@@ -462,7 +462,7 @@ class BillingServiceTests(TestCase):
 
         # In-memory calculations are accurate
         self.assertIsNone(inv.id)
-        self.assertTrue(inv.invoice_number.startswith("INV-DRYRUN-"))
+        self.assertTrue(inv.number.startswith("INV-DRYRUN-"))
         self.assertEqual(inv.subtotal, Decimal("100.00"))
         self.assertEqual(inv.discount_total, Decimal("10.00"))
         self.assertEqual(len(inv._dry_run_lines), 2)
@@ -588,7 +588,7 @@ class PaymentFormTests(TestCase):
         data = {
             "amount": "40.00",
             "method": Payment.METHOD_CARD,
-            "payment_date": date.today().isoformat(),
+            "date": date.today().isoformat(),
             "reference": "TXN-PARTIAL-001",
         }
         form = PaymentForm(data=data, invoice=self.inv, user=self.staff_user)
@@ -607,7 +607,7 @@ class PaymentFormTests(TestCase):
         data = {
             "amount": "100.00",
             "method": Payment.METHOD_BANK_TRANSFER,
-            "payment_date": date.today().isoformat(),
+            "date": date.today().isoformat(),
             "reference": "TXN-FULL-001",
         }
         form = PaymentForm(data=data, invoice=self.inv, user=self.staff_user)
@@ -624,7 +624,7 @@ class PaymentFormTests(TestCase):
         data = {
             "amount": "120.00",
             "method": Payment.METHOD_CARD,
-            "payment_date": date.today().isoformat(),
+            "date": date.today().isoformat(),
         }
         form = PaymentForm(data=data, invoice=self.inv, user=self.staff_user)
         self.assertFalse(form.is_valid())
@@ -635,7 +635,7 @@ class PaymentFormTests(TestCase):
         data = {
             "amount": "0.00",
             "method": Payment.METHOD_CARD,
-            "payment_date": date.today().isoformat(),
+            "date": date.today().isoformat(),
         }
         form = PaymentForm(data=data, invoice=self.inv, user=self.staff_user)
         self.assertFalse(form.is_valid())
@@ -698,15 +698,15 @@ class BillingViewTests(TestCase):
         self.client.force_login(self.customer1)
         resp_cust = self.client.get(reverse("billing:list"))
         self.assertEqual(resp_cust.status_code, 200)
-        self.assertContains(resp_cust, self.inv1.invoice_number)
-        self.assertNotContains(resp_cust, self.inv2.invoice_number)
+        self.assertContains(resp_cust, self.inv1.number)
+        self.assertNotContains(resp_cust, self.inv2.number)
 
         # Staff
         self.client.force_login(self.staff_user)
         resp_staff = self.client.get(reverse("billing:list"))
         self.assertEqual(resp_staff.status_code, 200)
-        self.assertContains(resp_staff, self.inv1.invoice_number)
-        self.assertContains(resp_staff, self.inv2.invoice_number)
+        self.assertContains(resp_staff, self.inv1.number)
+        self.assertContains(resp_staff, self.inv2.number)
 
     def test_invoice_detail_view_permissions(self):
         """Verifies customer cannot access another customer's invoice (HTTP 404)."""
@@ -718,7 +718,7 @@ class BillingViewTests(TestCase):
         # Access own invoice succeeds
         resp_own = self.client.get(reverse("billing:detail", kwargs={"invoice_id": self.inv1.id}))
         self.assertEqual(resp_own.status_code, 200)
-        self.assertContains(resp_own, self.inv1.invoice_number)
+        self.assertContains(resp_own, self.inv1.number)
         self.assertContains(resp_own, "Pro Service")
 
     def test_record_payment_view_staff_only(self):
@@ -738,7 +738,7 @@ class BillingViewTests(TestCase):
         post_data = {
             "amount": "50.00",
             "method": Payment.METHOD_CARD,
-            "payment_date": date.today().isoformat(),
+            "date": date.today().isoformat(),
             "reference": "AUTH-1234",
         }
         resp_post = self.client.post(reverse("billing:record_payment", kwargs={"invoice_id": self.inv2.id}), post_data)
@@ -769,7 +769,7 @@ class BillingViewTests(TestCase):
         self.client.force_login(self.staff_user)
         resp = self.client.get(reverse("billing:payment_history"))
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, self.inv2.invoice_number)
+        self.assertContains(resp, self.inv2.number)
         self.assertContains(resp, "50.00")
 
     def test_invoice_outstanding_view(self):
@@ -777,7 +777,7 @@ class BillingViewTests(TestCase):
         self.client.force_login(self.staff_user)
         resp = self.client.get(reverse("billing:outstanding"))
         self.assertEqual(resp.status_code, 200)
-        self.assertContains(resp, self.inv2.invoice_number)
+        self.assertContains(resp, self.inv2.number)
 
     def test_invoice_pdf_view_renders_successfully(self):
         """Verifies invoice PDF endpoint returns either application/pdf or print-friendly HTML."""

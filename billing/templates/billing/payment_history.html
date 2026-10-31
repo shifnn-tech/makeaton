@@ -71,12 +71,12 @@
               <td class="fw-semibold">#{{ pmt.id }}</td>
               <td>
                 <a href="{% url 'billing:detail' pmt.invoice.id %}" class="text-decoration-none fw-semibold">
-                  {{ pmt.invoice.invoice_number }}
+                  {{ pmt.invoice.number }}
                 </a>
               </td>
               <td>{{ pmt.invoice.subscription.customer.email }}</td>
               <td><span class="badge bg-light text-dark border">{{ pmt.get_method_display }}</span></td>
-              <td>{{ pmt.payment_date|date:"M d, Y" }}</td>
+              <td>{{ pmt.date|date:"M d, Y" }}</td>
               <td class="small text-muted">{{ pmt.reference|default:"-" }}</td>
               <td class="small text-muted">{{ pmt.recorded_by.email|default:"System" }}</td>
               <td class="text-end fw-bold text-success font-monospace">+${{ pmt.amount }}</td>

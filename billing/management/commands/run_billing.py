@@ -80,7 +80,7 @@ class Command(BaseCommand):
                 else:
                     self.stdout.write(
                         self.style.SUCCESS(
-                            f"    [CREATED] Invoice {invoice.invoice_number} (Total: ${invoice.total})"
+                            f"    [CREATED] Invoice {invoice.number} (Total: ${invoice.total})"
                         )
                     )
             except DuplicateInvoiceError as exc:

@@ -20,7 +20,7 @@ class InvoiceLineInline(admin.TabularInline):
 class PaymentInline(admin.TabularInline):
     model = Payment
     extra = 0
-    fields = ("method", "amount", "payment_date", "reference", "recorded_by", "created_at")
+    fields = ("method", "amount", "date", "reference", "recorded_by", "created_at")
     readonly_fields = ("created_at",)
 
 
@@ -46,7 +46,7 @@ class DiscountAdmin(admin.ModelAdmin):
 @admin.register(Invoice)
 class InvoiceAdmin(admin.ModelAdmin):
     list_display = (
-        "invoice_number",
+        "number",
         "subscription",
         "status",
         "period_start",
@@ -63,14 +63,14 @@ class InvoiceAdmin(admin.ModelAdmin):
     )
     list_filter = ("status", "due_date", "period_start", "issue_date")
     search_fields = (
-        "invoice_number",
+        "number",
         "subscription__number",
         "subscription__customer__email",
         "subscription__customer__first_name",
         "subscription__customer__last_name",
     )
     readonly_fields = (
-        "invoice_number",
+        "number",
         "created_at",
         "updated_at",
         "amount_paid",
@@ -87,14 +87,14 @@ class PaymentAdmin(admin.ModelAdmin):
         "invoice",
         "method",
         "amount",
-        "payment_date",
+        "date",
         "reference",
         "recorded_by",
         "created_at",
     )
-    list_filter = ("method", "payment_date")
+    list_filter = ("method", "date")
     search_fields = (
-        "invoice__invoice_number",
+        "invoice__number",
         "reference",
         "invoice__subscription__customer__email",
     )

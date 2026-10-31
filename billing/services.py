@@ -190,7 +190,7 @@ def generate_invoice(
     # 7. Dry-Run Mode: Return In-Memory Representation Without Database Writes
     # --------------------------------------------------------------------------
     if dry_run:
-        invoice.invoice_number = f"INV-DRYRUN-{uuid.uuid4().hex[:6].upper()}"
+        invoice.number = f"INV-DRYRUN-{uuid.uuid4().hex[:6].upper()}"
         invoice._dry_run_lines = [
             InvoiceLine(
                 invoice=invoice,
@@ -231,5 +231,5 @@ def generate_invoice(
     subscription.next_invoice_date = period_end
     subscription.save(update_fields=["next_invoice_date", "updated_at"])
 
-    logger.info(f"Generated invoice {invoice.invoice_number} for subscription {subscription.number}")
+    logger.info(f"Generated invoice {invoice.number} for subscription {subscription.number}")
     return invoice

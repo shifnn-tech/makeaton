@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Invoice {{ invoice.invoice_number }} - BrightLoop{% endblock %}
+{% block title %}Invoice {{ invoice.number }} - BrightLoop{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -9,7 +9,7 @@
   <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 no-print gap-2">
     <div>
       <a href="{% url 'billing:list' %}" class="small text-decoration-none">&larr; Back to Invoices</a>
-      <h2 class="fw-bold mb-0 mt-1">{{ invoice.invoice_number }}</h2>
+      <h2 class="fw-bold mb-0 mt-1">{{ invoice.number }}</h2>
     </div>
     <div class="d-flex flex-wrap align-items-center gap-2">
       <!-- Status Badge -->
@@ -69,7 +69,7 @@
       </div>
       <div class="col-sm-6 text-sm-end">
         <h4 class="fw-bold mb-1">INVOICE</h4>
-        <p class="mb-0"><strong>Invoice #:</strong> {{ invoice.invoice_number }}</p>
+        <p class="mb-0"><strong>Invoice #:</strong> {{ invoice.number }}</p>
         <p class="mb-0"><strong>Billing Period:</strong> {{ invoice.period_start|date:"M d, Y" }} &ndash; {{ invoice.period_end|date:"M d, Y" }}</p>
         <p class="mb-0"><strong>Issue Date:</strong> {{ invoice.issue_date|date:"M d, Y" }}</p>
         <p class="mb-0"><strong>Due Date:</strong> {{ invoice.due_date|date:"M d, Y" }}</p>
@@ -182,7 +182,7 @@
                 <tr>
                   <td>#{{ pmt.id }}</td>
                   <td>{{ pmt.get_method_display }}</td>
-                  <td>{{ pmt.payment_date|date:"M d, Y" }}</td>
+                  <td>{{ pmt.date|date:"M d, Y" }}</td>
                   <td>{{ pmt.reference|default:"-" }}</td>
                   <td class="text-muted small">{{ pmt.recorded_by.email|default:"System" }}</td>
                   <td class="text-end text-success font-monospace fw-bold">+${{ pmt.amount }}</td>

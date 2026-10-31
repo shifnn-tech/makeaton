@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Record Payment - {{ invoice.invoice_number }} - BrightLoop{% endblock %}
+{% block title %}Record Payment - {{ invoice.number }} - BrightLoop{% endblock %}
 
 {% block content %}
 <div class="container py-4">
@@ -11,7 +11,7 @@
       <nav aria-label="breadcrumb" class="mb-3">
         <ol class="breadcrumb mb-0">
           <li class="breadcrumb-item"><a href="{% url 'billing:list' %}" class="text-decoration-none">Invoices</a></li>
-          <li class="breadcrumb-item"><a href="{% url 'billing:detail' invoice.id %}" class="text-decoration-none">{{ invoice.invoice_number }}</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'billing:detail' invoice.id %}" class="text-decoration-none">{{ invoice.number }}</a></li>
           <li class="breadcrumb-item active" aria-current="page">Record Payment</li>
         </ol>
       </nav>
@@ -19,7 +19,7 @@
       <div class="card shadow-sm border-0">
         <div class="card-header bg-primary text-white py-3">
           <h4 class="card-title fw-bold mb-0">Record Payment</h4>
-          <span class="small opacity-75">Apply receipt against Invoice {{ invoice.invoice_number }}</span>
+          <span class="small opacity-75">Apply receipt against Invoice {{ invoice.number }}</span>
         </div>
 
         <div class="card-body p-4">
@@ -75,11 +75,11 @@
 
             <!-- Payment Date Field -->
             <div class="mb-3">
-              <label for="{{ form.payment_date.id_for_label }}" class="form-label fw-bold">Payment Date</label>
-              {{ form.payment_date }}
-              {% if form.payment_date.errors %}
+              <label for="{{ form.date.id_for_label }}" class="form-label fw-bold">Payment Date</label>
+              {{ form.date }}
+              {% if form.date.errors %}
                 <div class="text-danger small mt-1">
-                  {% for error in form.payment_date.errors %}{{ error }}{% endfor %}
+                  {% for error in form.date.errors %}{{ error }}{% endfor %}
                 </div>
               {% endif %}
             </div>

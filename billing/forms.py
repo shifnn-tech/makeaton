@@ -23,9 +23,9 @@ class PaymentForm(forms.ModelForm):
 
     class Meta:
         model = Payment
-        fields = ["amount", "method", "reference", "payment_date"]
+        fields = ["amount", "method", "reference", "date"]
         widgets = {
-            "payment_date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
+            "date": forms.DateInput(attrs={"type": "date", "class": "form-control"}),
             "amount": forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "min": "0.01"}),
             "method": forms.Select(attrs={"class": "form-select"}),
             "reference": forms.TextInput(attrs={"class": "form-control", "placeholder": "Check #, Transaction ID, etc."}),

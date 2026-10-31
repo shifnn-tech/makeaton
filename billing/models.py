@@ -232,7 +232,7 @@ class Invoice(models.Model):
         help_text=_("Subscription associated with this bill."),
     )
 
-    invoice_number = models.CharField(
+    number = models.CharField(
         max_length=32,
         unique=True,
         editable=False,
@@ -316,27 +316,27 @@ class Invoice(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.invoice_number} ({self.subscription.customer.email}) - ${self.total} [{self.status}]"
+        return f"{self.number} ({self.subscription.customer.email}) - ${self.total} [{self.status}]"
 
     def save(self, *args, **kwargs):
         # Auto-generate unique human-readable invoice reference number
-        if not self.invoice_number:
+        if not self.number:
             date_prefix = timezone.now().strftime("%Y%m")
             random_suffix = uuid.uuid4().hex[:6].upper()
-            self.invoice_number = f"INV-{date_prefix}-{random_suffix}"
+            self.number = f"INV-{date_prefix}-{random_suffix}"
         super().save(*args, **kwargs)
 
     # --------------------------------------------------------------------------
     # Backward Compatibility Aliases for Templates & External Code
     # --------------------------------------------------------------------------
     @property
-    def number(self) -> str:
-        """Alias for invoice_number to support existing templates and dashboard queries."""
-        return self.invoice_number
+    def invoice_number(self) -> str:
+        """Alias for number."""
+        return self.number
 
-    @number.setter
-    def number(self, value: str):
-        self.invoice_number = value
+    @invoice_number.setter
+    def invoice_number(self, value: str):
+        self.number = value
 
     @property
     def discount_amount(self) -> Decimal:
@@ -519,7 +519,7 @@ class Payment(models.Model):
         validators=[MinValueValidator(Decimal("0.01"))],
         help_text=_("Payment amount in currency."),
     )
-    payment_date = models.DateField(
+    date = models.DateField(
         default=timezone.localdate,
         help_text=_("Date this payment was executed."),
     )
@@ -545,23 +545,24 @@ class Payment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ["-payment_date", "-created_at"]
+        ordering = ["-date", "-created_at"]
         verbose_name = _("Payment")
         verbose_name_plural = _("Payments")
 
     def __str__(self):
-        return f"Payment #{self.id} for {self.invoice.invoice_number} - ${self.amount} via {self.get_method_display()}"
+        return f"Payment #{self.id} for {self.invoice.number} - ${self.amount} via {self.get_method_display()}"
 
     # --------------------------------------------------------------------------
-    # Backward Compatibility Aliases for Seed Data & Existing Templates
+    # Backward Compatibility Aliases for Seed Data & External Code
     # --------------------------------------------------------------------------
     @property
-    def date(self):
-        return self.payment_date
+    def payment_date(self):
+        """Alias for date."""
+        return self.date
 
-    @date.setter
-    def date(self, value):
-        self.payment_date = value
+    @payment_date.setter
+    def payment_date(self, value):
+        self.date = value
 
     @property
     def note(self):

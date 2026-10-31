@@ -55,7 +55,7 @@
             <tr {% if inv.is_overdue %}class="table-danger"{% endif %}>
               <td class="fw-bold">
                 <a href="{% url 'billing:detail' inv.id %}" class="text-decoration-none">
-                  {{ inv.invoice_number }}
+                  {{ inv.number }}
                 </a>
               </td>
               <td>{{ inv.subscription.customer.email }}</td>

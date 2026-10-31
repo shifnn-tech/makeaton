@@ -116,7 +116,7 @@ def record_payment_view(request, invoice_id: int):
     )
 
     if invoice.balance_due <= Decimal("0.00"):
-        messages.info(request, f"Invoice {invoice.invoice_number} is already fully paid.")
+        messages.info(request, f"Invoice {invoice.number} is already fully paid.")
         return redirect("billing:detail", invoice_id=invoice.id)
 
     if request.method == "POST":
@@ -153,7 +153,7 @@ def confirm_invoice_view(request, invoice_id: int):
     if request.method == "POST":
         try:
             invoice.confirm()
-            messages.success(request, f"Invoice {invoice.invoice_number} has been confirmed.")
+            messages.success(request, f"Invoice {invoice.number} has been confirmed.")
         except ValidationError as exc:
             messages.error(request, f"Cannot confirm invoice: {exc}")
 
@@ -170,7 +170,7 @@ def payment_history_view(request):
     queryset = (
         Payment.objects
         .select_related("invoice__subscription__customer", "invoice__subscription__plan", "recorded_by")
-        .order_by("-payment_date", "-created_at")
+        .order_by("-date", "-created_at")
     )
     payments = filter_by_user(queryset, request.user, user_field="invoice__subscription__customer")
 
@@ -184,14 +184,14 @@ def payment_history_view(request):
         payments = payments.filter(method=method)
     if search_q:
         payments = payments.filter(
-            models.Q(invoice__invoice_number__icontains=search_q)
+            models.Q(invoice__number__icontains=search_q)
             | models.Q(reference__icontains=search_q)
             | models.Q(invoice__subscription__customer__email__icontains=search_q)
         )
     if date_from:
-        payments = payments.filter(payment_date__gte=date_from)
+        payments = payments.filter(date__gte=date_from)
     if date_to:
-        payments = payments.filter(payment_date__lte=date_to)
+        payments = payments.filter(date__lte=date_to)
 
     return render(
         request,
@@ -235,10 +235,10 @@ def invoice_pdf_view(request, invoice_id: int):
 
             if not pisa_status.err:
                 response = HttpResponse(pdf_buffer.getvalue(), content_type="application/pdf")
-                response["Content-Disposition"] = f'attachment; filename="Invoice-{invoice.invoice_number}.pdf"'
+                response["Content-Disposition"] = f'attachment; filename="Invoice-{invoice.number}.pdf"'
                 return response
             else:
-                logger.error(f"xhtml2pdf error generating PDF for invoice {invoice.invoice_number}")
+                logger.error(f"xhtml2pdf error generating PDF for invoice {invoice.number}")
         except Exception as exc:
             logger.exception(f"Exception during PDF generation: {exc}")
 
