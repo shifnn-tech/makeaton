@@ -1,13 +1,21 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Create Customer Account - BrightLoop{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+{% endblock %}
+
+{% block body_class %}is-auth-page{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center py-5">
   <div class="col-md-6 col-lg-5">
-    <div class="card shadow border-0">
-      <div class="card-body p-4">
-        <h3 class="card-title fw-bold text-center mb-1">Create Customer Account</h3>
+    <!-- Modern 24px Card -->
+    <div class="card">
+      <div class="card-body p-4 p-sm-5">
+        <h3 class="card-title fw-bold tracking-tight text-center mb-1">Create Customer Account</h3>
         <p class="text-muted text-center small mb-4">Sign up to manage and subscribe to recurring plans</p>
 
         {% include "includes/form_errors.html" %}
@@ -17,40 +25,40 @@
 
           <div class="row g-2 mb-3">
             <div class="col-sm-6">
-              <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold">First Name</label>
+              <label for="{{ form.first_name.id_for_label }}" class="form-label fw-semibold small text-secondary">First Name</label>
               {{ form.first_name }}
             </div>
             <div class="col-sm-6">
-              <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold">Last Name</label>
+              <label for="{{ form.last_name.id_for_label }}" class="form-label fw-semibold small text-secondary">Last Name</label>
               {{ form.last_name }}
             </div>
           </div>
 
           <div class="mb-3">
-            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">Email address</label>
+            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold small text-secondary">Email address</label>
             {{ form.email }}
           </div>
 
           <div class="mb-3">
-            <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold">Password</label>
+            <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold small text-secondary">Password</label>
             {{ form.password }}
             <div class="form-text text-muted small">
               Must be &gt;8 characters with uppercase, lowercase, and special characters.
             </div>
           </div>
 
-          <div class="mb-3">
-            <label for="{{ form.confirm_password.id_for_label }}" class="form-label fw-semibold">Confirm Password</label>
+          <div class="mb-4">
+            <label for="{{ form.confirm_password.id_for_label }}" class="form-label fw-semibold small text-secondary">Confirm Password</label>
             {{ form.confirm_password }}
           </div>
 
-          <button type="submit" class="btn btn-primary w-100 py-2 mt-2 shadow-sm">Register as Customer</button>
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">Register as Customer</button>
         </form>
 
-        <hr class="my-4">
+        <hr class="my-4" style="border-color: var(--theme-outline-variant);">
 
         <div class="text-center small text-muted">
-          Already have an account? <a href="{% url 'accounts:login' %}" class="text-primary fw-semibold">Sign In</a>
+          Already have an account? <a href="{% url 'accounts:login' %}" class="text-dark fw-semibold text-decoration-none">Sign In</a>
         </div>
       </div>
     </div>
