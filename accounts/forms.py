@@ -81,15 +81,36 @@ class CustomerSignUpForm(forms.ModelForm):
 class LoginForm(forms.Form):
     """
     Standard email + password login form styled with Bootstrap 5.
+    Includes remember_me checkbox and accessible autocomplete attributes.
     """
 
     email = forms.EmailField(
         label="Email address",
-        widget=forms.EmailInput(attrs={"class": "form-control", "placeholder": "name@example.com", "autofocus": True}),
+        widget=forms.EmailInput(attrs={
+            "class": "form-control",
+            "placeholder": "name@company.com",
+            "autocomplete": "email",
+            "autofocus": True,
+            "id": "id_email",
+        }),
     )
     password = forms.CharField(
         label="Password",
-        widget=forms.PasswordInput(attrs={"class": "form-control", "placeholder": "Password"}),
+        widget=forms.PasswordInput(attrs={
+            "class": "form-control",
+            "placeholder": "Enter your password",
+            "autocomplete": "current-password",
+            "id": "id_password",
+        }),
+    )
+    remember_me = forms.BooleanField(
+        required=False,
+        initial=True,
+        label="Remember me",
+        widget=forms.CheckboxInput(attrs={
+            "class": "form-check-input",
+            "id": "id_remember_me",
+        }),
     )
 
     def clean(self):
