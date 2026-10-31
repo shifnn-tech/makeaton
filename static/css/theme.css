@@ -49,14 +49,27 @@
   --theme-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --theme-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 
+  /* Override Bootstrap 5 core variables to black/charcoal */
+  --bs-primary: #000000;
+  --bs-primary-rgb: 0, 0, 0;
+  --bs-link-color: #1a1c1c;
+  --bs-link-hover-color: #000000;
+  --bs-link-color-rgb: 26, 28, 28;
+  --bs-body-bg: #f9f9f9;
+  --bs-body-color: #1a1c1c;
+
   /* Overrides for BrightLoop base variables */
   --bl-brand-primary: #000000;
   --bl-brand-primary-hover: #1c1b1b;
   --bl-brand-primary-light: var(--theme-surface-container);
   --bl-brand-secondary: var(--theme-secondary);
+  --bl-brand-accent: #2f2ebe;
   --bl-bg-body: var(--theme-surface);
   --bl-bg-card: var(--theme-surface-lowest);
   --bl-bg-topbar: var(--theme-surface-lowest);
+  --bl-bg-sidebar: #111318;
+  --bl-bg-sidebar-hover: #1c1b1b;
+  --bl-bg-sidebar-active: #000000;
   --bl-border-color: var(--theme-outline-variant);
   --bl-text-primary: var(--theme-on-surface);
   --bl-text-muted: var(--theme-on-surface-variant);
@@ -194,8 +207,87 @@ h3, .font-h3 {
   color: #000000 !important;
 }
 
-.text-primary-brand {
-  color: var(--theme-on-surface) !important;
+.text-primary-brand,
+.text-primary,
+.text-primary-emphasis {
+  color: #1a1c1c !important;
+}
+
+.bg-primary,
+.bg-primary-brand {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.bg-primary-subtle {
+  background-color: #f3f3f3 !important;
+  color: #1a1c1c !important;
+}
+
+.border-primary,
+.border-primary-subtle {
+  border-color: #1a1c1c !important;
+}
+
+.badge.bg-primary,
+.badge.bg-primary-brand,
+.badge-primary {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.badge.bg-primary-subtle {
+  background-color: #f3f3f3 !important;
+  color: #1a1c1c !important;
+  border: 1px solid #e8e8e8 !important;
+}
+
+/* Charcoal link rules */
+a:not(.btn) {
+  color: #1a1c1c;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:not(.btn):hover {
+  color: #000000;
+  text-decoration: underline;
+}
+
+.link-primary {
+  color: #1a1c1c !important;
+}
+
+.link-primary:hover,
+.link-primary:focus {
+  color: #000000 !important;
+}
+
+/* Sidebar and Topbar Theme overrides */
+.bl-sidebar {
+  background-color: #111318 !important;
+  color: #e2e2e2 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+.bl-sidebar-link {
+  color: #9ca3af !important;
+}
+
+.bl-sidebar-link:hover,
+.bl-sidebar-link:focus {
+  background-color: #1c1b1b !important;
+  color: #ffffff !important;
+}
+
+.bl-sidebar-link.active {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+.bl-topbar {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid var(--theme-outline-variant) !important;
 }
 
 /* Nav Pills (Tabs in Login, Portal filters, etc.) */
@@ -213,7 +305,7 @@ h3, .font-h3 {
 }
 
 /* Stat Cards Override (Remove thick legacy borders) */
-.stat-card, .stat-card-success, .stat-card-warning, .stat-card-danger {
+.stat-card, .stat-card-success, .stat-card-warning, .stat-card-danger, .stat-card-primary {
   border: 1px solid var(--theme-outline-variant) !important;
   border-radius: var(--theme-radius-card) !important;
   background-color: var(--theme-surface-lowest) !important;

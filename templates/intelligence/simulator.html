@@ -19,7 +19,7 @@
       <p class="text-muted mb-0">Interactive financial modeling, parameter sensitivity analysis, and multi-month forecasting</p>
     </div>
     <div>
-      <span class="badge bg-primary-brand px-3 py-2 text-uppercase">Admin / Staff Access Only</span>
+      <span class="badge bg-dark px-3 py-2 text-uppercase">Admin / Staff Access Only</span>
     </div>
   </div>
 
@@ -73,7 +73,7 @@
       <div class="card shadow-sm border-0 h-100">
         <div class="card-header bg-light d-flex justify-content-between align-items-center">
           <h5 class="fw-bold mb-0">Simulation Levers</h5>
-          <span class="badge bg-primary text-white">Live Client-Side JS</span>
+          <span class="badge bg-dark text-white">Live Client-Side JS</span>
         </div>
         <div class="card-body p-4">
 
@@ -95,7 +95,7 @@
               <label for="priceSlider" class="form-label fw-bold mb-0">
                 1. Price Adjustment %
               </label>
-              <span class="badge bg-primary fs-6 font-monospace" id="priceBadge">+0.0%</span>
+              <span class="badge bg-dark fs-6 font-monospace" id="priceBadge">+0.0%</span>
             </div>
             <input type="range" class="form-range" id="priceSlider" min="-30" max="50" step="1" value="0">
             <div class="d-flex justify-content-between text-muted small">
@@ -143,7 +143,7 @@
           <!-- Net Growth Summary Strip -->
           <div class="p-2 px-3 rounded bg-light border d-flex justify-content-between align-items-center mb-4">
             <span class="text-muted small fw-bold">Net Monthly Compounding Rate:</span>
-            <span class="badge bg-info text-dark font-monospace fs-6" id="netGrowthBadge">+2.00% / mo</span>
+            <span class="badge bg-light text-dark border font-monospace fs-6" id="netGrowthBadge">+2.00% / mo</span>
           </div>
 
           <!-- Quick Scenario Presets -->
@@ -151,7 +151,7 @@
             <label class="form-label small fw-bold text-muted text-uppercase mb-2">Scenario Presets</label>
             <div class="d-flex flex-wrap gap-2">
               <button type="button" class="btn btn-sm btn-outline-secondary" onclick="applyPreset(0, 0, 0)">Status Quo</button>
-              <button type="button" class="btn btn-sm btn-outline-primary" onclick="applyPreset(0, 5, 3)">Healthy Growth</button>
+              <button type="button" class="btn btn-sm btn-outline-dark" onclick="applyPreset(0, 5, 3)">Healthy Growth</button>
               <button type="button" class="btn btn-sm btn-outline-success" onclick="applyPreset(15, 8, 3.5)">Price Hike & Expansion</button>
               <button type="button" class="btn btn-sm btn-outline-dark" onclick="applyPreset(10, 15, 5)">Aggressive Scale</button>
               <button type="button" class="btn btn-sm btn-outline-danger" onclick="applyPreset(0, 2, 8)">High Churn Stress</button>
@@ -169,12 +169,16 @@
       <!-- Live Dynamic KPI Cards -->
       <div class="row g-3 mb-4">
         <div class="col-sm-6">
-          <div class="card h-100 shadow-sm border-0 stat-card-primary">
+          <div class="card h-100 shadow-sm border-0 stat-card">
             <div class="card-body">
               <span class="text-muted small text-uppercase fw-bold">Month 12 Projected MRR</span>
-              <h2 class="display-6 fw-bold my-1 text-primary-brand" id="kpiMonth12MRR">
+              <h2 class="display-6 fw-bold my-1 text-dark" id="kpiMonth12MRR">
                 ${{ sim_data.month_12_mrr|floatformat:2|intcomma }}
               </h2>
+              <small class="text-muted">Monthly run rate at end of 12 months</small>
+            </div>
+          </div>
+        </div>
               <small class="text-muted">Monthly run rate at end of 12 months</small>
             </div>
           </div>
@@ -315,7 +319,7 @@
             <tr>
               <td class="fw-bold">Month {{ p.step }}</td>
               <td>{{ p.month_name }}</td>
-              <td class="text-end fw-bold text-primary">${{ p.mrr|floatformat:2|intcomma }}</td>
+              <td class="text-end fw-bold text-dark">${{ p.mrr|floatformat:2|intcomma }}</td>
               <td class="text-end text-muted">${{ p.arr|floatformat:2|intcomma }}</td>
               <td class="text-end text-muted">${{ p.baseline_mrr|floatformat:2|intcomma }}</td>
               <td class="text-end fw-bold {% if p.mrr >= p.baseline_mrr %}text-success{% else %}text-danger{% endif %}">
@@ -364,6 +368,9 @@
   }
 
   // Initialize Chart.js
+  Chart.defaults.font.family = '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+  Chart.defaults.color = "#747878";
+
   const ctx = document.getElementById('simulationChart').getContext('2d');
   const simulationChart = new Chart(ctx, {
     type: 'line',
@@ -373,19 +380,21 @@
         {
           label: 'Simulated MRR',
           data: initialSimulatedData,
-          borderColor: '#2563eb',
-          backgroundColor: 'rgba(37, 99, 235, 0.08)',
+          borderColor: '#2f2ebe',
+          backgroundColor: 'rgba(47, 46, 190, 0.08)',
           fill: true,
           tension: 0.3,
-          borderWidth: 3,
+          borderWidth: 2.5,
           pointRadius: 4,
           pointHoverRadius: 6,
-          pointBackgroundColor: '#2563eb',
+          pointBackgroundColor: '#2f2ebe',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 1.5,
         },
         {
           label: 'Status Quo Baseline MRR',
           data: initialBaselineData,
-          borderColor: '#94a3b8',
+          borderColor: '#c4c7c7',
           borderDash: [5, 5],
           fill: false,
           pointRadius: 0,
@@ -404,8 +413,19 @@
         legend: {
           display: true,
           position: 'top',
+          labels: {
+            boxWidth: 12,
+            usePointStyle: true,
+            color: '#1a1c1c'
+          }
         },
         tooltip: {
+          backgroundColor: '#111318',
+          titleColor: '#ffffff',
+          bodyColor: '#ffffff',
+          borderColor: '#2d3139',
+          borderWidth: 1,
+          padding: 10,
           callbacks: {
             label: function(context) {
               let label = context.dataset.label || '';
@@ -424,17 +444,21 @@
         y: {
           beginAtZero: false,
           ticks: {
+            color: '#747878',
             callback: function(value) {
               return '$' + (value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value);
             }
           },
           grid: {
-            color: '#f1f5f9'
+            color: '#E8E8E8'
           }
         },
         x: {
           grid: {
             display: false
+          },
+          ticks: {
+            color: '#747878'
           }
         }
       }
@@ -484,7 +508,7 @@
         <tr>
           <td class="fw-bold">Month ${m}</td>
           <td>${calendarText}</td>
-          <td class="text-end fw-bold text-primary">${formatMoney(currentMRR)}</td>
+          <td class="text-end fw-bold text-dark">${formatMoney(currentMRR)}</td>
           <td class="text-end text-muted">${formatMoney(mrrArr)}</td>
           <td class="text-end text-muted">${formatMoney(BASE_MRR)}</td>
           <td class="text-end fw-bold ${diffClass}">${diffSign}${formatMoney(diff)}</td>

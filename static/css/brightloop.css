@@ -38,47 +38,47 @@
 
 :root {
     /* --- Brand Colours --- */
-    --bl-brand-primary: #2563eb;          /* Royal Blue */
-    --bl-brand-primary-hover: #1d4ed8;    /* Darker Blue */
-    --bl-brand-primary-light: #eff6ff;    /* Tint Blue */
-    --bl-brand-secondary: #475569;        /* Slate Gray */
-    --bl-brand-secondary-hover: #334155;  /* Deep Slate */
-    --bl-brand-accent: #0ea5e9;           /* Sky Blue */
+    --bl-brand-primary: #000000;          /* Black Primary */
+    --bl-brand-primary-hover: #1c1b1b;    /* Charcoal Hover */
+    --bl-brand-primary-light: #f3f3f3;    /* Tint Container */
+    --bl-brand-secondary: #5e5e5e;        /* Slate Neutral */
+    --bl-brand-secondary-hover: #1c1b1b;  /* Charcoal Dark */
+    --bl-brand-accent: #2f2ebe;           /* Blue-Violet Accent */
 
     /* --- Status & Feedback Colours --- */
     --bl-color-active: #10b981;           /* Emerald Green */
-    --bl-color-paid: #2563eb;             /* Royal Blue */
-    --bl-color-draft: #94a3b8;            /* Slate Muted */
+    --bl-color-paid: #10b981;             /* Settled Green */
+    --bl-color-draft: #747878;            /* Slate Muted */
     --bl-color-overdue: #ef4444;          /* Crimson Red */
-    --bl-color-closed: #334155;           /* Charcoal Dark */
+    --bl-color-closed: #1c1b1b;           /* Charcoal Dark */
     --bl-color-warning: #f59e0b;          /* Amber */
-    --bl-color-info: #0ea5e9;             /* Cyan Sky */
+    --bl-color-info: #2f2ebe;             /* Violet Accent */
 
     /* --- Backgrounds --- */
-    --bl-bg-body: #f8fafc;
+    --bl-bg-body: #f9f9f9;
     --bl-bg-card: #ffffff;
     --bl-bg-topbar: #ffffff;
-    --bl-bg-sidebar: #1e293b;
-    --bl-bg-sidebar-hover: #334155;
-    --bl-bg-sidebar-active: #2563eb;
-    --bl-bg-table-head: #eff6ff;
-    --bl-bg-table-stripe: #f8fafc;
-    --bl-bg-table-hover: #eff6ff;
+    --bl-bg-sidebar: #111318;
+    --bl-bg-sidebar-hover: #1c1b1b;
+    --bl-bg-sidebar-active: #000000;
+    --bl-bg-table-head: #f3f3f3;
+    --bl-bg-table-stripe: #f9f9f9;
+    --bl-bg-table-hover: #f3f3f3;
     --bl-bg-input: #ffffff;
-    --bl-bg-muted: #f1f5f9;
+    --bl-bg-muted: #eeeeee;
 
     /* --- Text Colours --- */
-    --bl-text-primary: #1e293b;
-    --bl-text-secondary: #475569;
-    --bl-text-muted: #94a3b8;
+    --bl-text-primary: #1a1c1c;
+    --bl-text-secondary: #444748;
+    --bl-text-muted: #747878;
     --bl-text-inverse: #ffffff;
-    --bl-text-sidebar: #cbd5e1;
-    --bl-text-sidebar-muted: #64748b;
+    --bl-text-sidebar: #e2e2e2;
+    --bl-text-sidebar-muted: #747878;
 
     /* --- Borders --- */
-    --bl-border-color: #e2e8f0;
-    --bl-border-focus: #2563eb;
-    --bl-border-sidebar: #334155;
+    --bl-border-color: #E8E8E8;
+    --bl-border-focus: #1a1c1c;
+    --bl-border-sidebar: rgba(255, 255, 255, 0.12);
     --bl-border-width: 1px;
 
     /* --- Border Radii --- */

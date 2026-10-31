@@ -9,24 +9,24 @@ Purpose:
 
 :root {
     /* Brand Primary Color Palette */
-    --primary-color: #2563eb;       /* Royal Blue */
-    --primary-hover: #1d4ed8;       /* Darker Blue */
-    --primary-light: #eff6ff;       /* Very Light Blue */
-    --secondary-color: #475569;     /* Slate */
-    --accent-color: #0ea5e9;        /* Sky Blue */
+    --primary-color: #000000;       /* Charcoal Black */
+    --primary-hover: #1c1b1b;       /* Darker Charcoal */
+    --primary-light: #f3f3f3;       /* Surface Container */
+    --secondary-color: #5e5e5e;     /* Slate */
+    --accent-color: #2f2ebe;        /* Blue-Violet Accent */
     --success-color: #10b981;       /* Emerald */
     --warning-color: #f59e0b;       /* Amber */
     --danger-color: #ef4444;        /* Crimson */
     
     /* Backgrounds & Borders */
-    --body-bg: #f8fafc;
+    --body-bg: #f9f9f9;
     --card-bg: #ffffff;
-    --border-color: #e2e8f0;
+    --border-color: #E8E8E8;
 }
 
 body {
     background-color: var(--body-bg);
-    color: #1e293b;
+    color: #1a1c1c;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     min-height: 100vh;
     display: flex;
