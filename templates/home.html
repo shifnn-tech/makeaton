@@ -1,173 +1,790 @@
 {% extends "base.html" %}
+{% load static humanize catalog_tags %}
 
-{% block title %}Home - BrightLoop{% endblock %}
+{% block title %}
+  {% if not user.is_authenticated %}
+    BrightLoop - AI Voice Infrastructure & Subscription Engine
+  {% else %}
+    Home - BrightLoop
+  {% endif %}
+{% endblock %}
+
+{% block body_class %}{% if not user.is_authenticated %}is-public-visitor{% endif %}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+{% if not user.is_authenticated %}
+  <!-- ========================================================================
+       AURALIS / BRIGHTLOOP PUBLIC LANDING PAGE (screen.png & DESIGN.md)
+       ======================================================================== -->
 
-  {% if not user.is_authenticated %}
-    <!-- ====================================================================
-         ANONYMOUS / GUEST VISITOR WELCOME SCREEN
-         ==================================================================== -->
-    <div class="p-5 mb-4 bg-light rounded-3 shadow-sm border text-center">
-      <div class="container-fluid py-5">
-        <h1 class="display-5 fw-bold text-primary-brand">BrightLoop Subscriptions</h1>
-        <p class="col-md-8 mx-auto fs-5 text-muted">
-          A modular, offline-first subscription and billing engine built with Django & Bootstrap 5.
-          Manage customer recurring plans, itemized quotes, invoices, and automated lifecycle billing.
-        </p>
-        <div class="d-flex justify-content-center gap-3 mt-4">
-          <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-lg px-4 shadow">Get Started (Customer)</a>
-          <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-lg px-4">Sign In</a>
-          <a href="{% url 'catalog:plan_list' %}" class="btn btn-outline-primary btn-lg px-4">View Plans</a>
-        </div>
+  <!-- 1. TopNavBar -->
+  <nav class="landing-navbar py-3">
+    <div class="landing-container d-flex justify-content-between align-items-center">
+      <!-- Brand Logo -->
+      <a class="navbar-brand d-flex align-items-center text-dark text-decoration-none" href="{% url 'accounts:home' %}">
+        <span class="fs-4 fw-bold tracking-tight">BrightLoop</span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <div class="d-none d-md-flex align-items-center gap-4">
+        <a class="landing-nav-link text-dark fw-bold border-bottom border-dark border-2 pb-1" href="#capabilities">Models</a>
+        <a class="landing-nav-link" href="#developer-api">API</a>
+        <a class="landing-nav-link" href="#applications">Voice Lab</a>
+        <a class="landing-nav-link" href="#enterprise">Enterprise</a>
+        <a class="landing-nav-link" href="#pricing">Pricing</a>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'accounts:login' %}" class="btn btn-sm btn-outline-secondary px-3 py-2" style="border-radius: 9999px;">
+          Log In
+        </a>
+        <a href="{% url 'accounts:signup' %}" class="btn btn-sm btn-primary btn-pill px-4 py-2">
+          Get Started
+        </a>
       </div>
     </div>
+  </nav>
 
-  {% elif user.role == 'customer' %}
-    <!-- ====================================================================
-         CUSTOMER DASHBOARD PLACEHOLDER
-         ==================================================================== -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h2 class="fw-bold mb-1">Welcome back, {{ user.first_name|default:user.email }}!</h2>
-        <p class="text-muted mb-0">Customer Portal &bull; Self-service subscription management</p>
-      </div>
-      <span class="badge badge-role-customer fs-6 px-3 py-2 text-uppercase">Customer Tier</span>
+  <!-- 2. Hero Section -->
+  <section class="landing-container text-center pt-5 pb-5 mt-4" style="margin-bottom: 110px;">
+    <!-- Announcement Badge -->
+    <div class="d-inline-flex align-items-center badge-theme-announcement mb-4 shadow-sm">
+      <span class="badge-tag-dark">New</span>
+      <span class="text-dark small">BrightLoop v2.0 is now live</span>
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </div>
 
-    <div class="row g-4 mb-4">
-      <div class="col-md-4">
-        <div class="card h-100 shadow-sm border-0 stat-card">
-          <div class="card-body">
-            <h5 class="card-title text-muted text-uppercase fs-6">My Subscriptions</h5>
-            <p class="card-text text-muted">Review your active recurring plans, renewal terms, and contract status.</p>
-            <a href="{% url 'subscriptions:list' %}" class="btn btn-primary btn-sm">View Subscriptions &rarr;</a>
+    <!-- Main Headline -->
+    <h1 class="hero-title mx-auto mb-4" style="max-width: 920px;">
+      Create AI audio that sounds human
+    </h1>
+
+    <!-- Subtitle -->
+    <p class="mx-auto mb-5 text-muted" style="max-width: 640px; font-size: 1.15rem; line-height: 1.6;">
+      Precision-engineered voice and subscription infrastructure. Generate ultra-realistic speech, manage global billing, and scale seamlessly with enterprise APIs.
+    </p>
+
+    <!-- Hero CTA Buttons -->
+    <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 mb-5">
+      <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-pill shadow-sm">
+        Start Building
+      </a>
+      <a href="{% url 'catalog:plan_list' %}" class="btn btn-outline-secondary btn-pill">
+        Explore Platform
+      </a>
+    </div>
+
+    <!-- Hero Demo UI Window (Soundwave / Audio Player Frame) -->
+    <div class="hero-demo-frame mx-auto" style="max-width: 1040px;">
+      <div class="hero-demo-inner">
+        <!-- SVG Ambient Soundwave Visualization -->
+        <svg class="hero-waveform-svg" viewBox="0 0 1000 240" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.25"/>
+              <stop offset="50%" stop-color="#0f172a" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#2563eb" stop-opacity="0.2"/>
+            </linearGradient>
+            <linearGradient id="waveGradFront" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#1e293b" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="#334155" stop-opacity="0.6"/>
+            </linearGradient>
+          </defs>
+          <path d="M0,160 Q150,20 300,140 T600,100 T850,50 T1000,140 L1000,240 L0,240 Z" fill="url(#waveGrad)"/>
+          <path d="M0,180 Q200,60 400,150 T700,70 T900,130 T1000,170 L1000,240 L0,240 Z" fill="url(#waveGradFront)"/>
+        </svg>
+
+        <!-- Floating Player Bar -->
+        <div class="hero-player-bar">
+          <div class="d-flex align-items-center gap-3">
+            <button class="btn btn-primary rounded-circle d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" aria-label="Play sample">
+              <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
+              </svg>
+            </button>
+            <div class="text-start">
+              <div class="fw-bold small text-dark">Synthesized Voice Output</div>
+              <div class="text-muted" style="font-size: 0.75rem;">Model: Aura-v2-English &bull; 24kHz Ultra-HD</div>
+            </div>
+          </div>
+
+          <!-- Pulsing Audio Frequency Bars -->
+          <div class="d-flex align-items-center gap-1" style="height: 24px;">
+            <span class="bg-dark rounded-pill" style="width: 3px; height: 16px;"></span>
+            <span class="bg-dark rounded-pill" style="width: 3px; height: 24px;"></span>
+            <span class="bg-dark rounded-pill" style="width: 3px; height: 12px;"></span>
+            <span class="bg-dark rounded-pill" style="width: 3px; height: 20px;"></span>
+            <span class="bg-secondary rounded-pill opacity-50" style="width: 3px; height: 14px;"></span>
+            <span class="bg-secondary rounded-pill opacity-50" style="width: 3px; height: 8px;"></span>
+            <span class="bg-secondary rounded-pill opacity-50" style="width: 3px; height: 5px;"></span>
           </div>
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="card h-100 shadow-sm border-0 stat-card-success">
-          <div class="card-body">
-            <h5 class="card-title text-muted text-uppercase fs-6">My Invoices & Receipts</h5>
-            <p class="card-text text-muted">Inspect itemized billing statements, payment receipts, and balance due.</p>
-            <a href="{% url 'billing:list' %}" class="btn btn-outline-primary btn-sm">View Invoices &rarr;</a>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card h-100 shadow-sm border-0 stat-card-warning">
-          <div class="card-body">
-            <h5 class="card-title text-muted text-uppercase fs-6">Catalog & Upgrades</h5>
-            <p class="card-text text-muted">Explore additional tiers, add-on products, and seasonal promotional plans.</p>
-            <a href="{% url 'catalog:plan_list' %}" class="btn btn-outline-secondary btn-sm">Explore Plans &rarr;</a>
-          </div>
-        </div>
+    </div>
+  </section>
+
+  <!-- 3. Trust Strip -->
+  <section class="trust-strip">
+    <div class="landing-container text-center">
+      <p class="font-label-caps text-muted mb-4">Trusted by Industry Leaders & Modern Teams</p>
+      <div class="d-flex flex-wrap justify-content-center align-items-center gap-4 gap-md-5 opacity-75">
+        <span class="trust-logo-pill">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0zm3.5 7.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/></svg>
+          Vertex AI
+        </span>
+        <span class="trust-logo-pill">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2z"/></svg>
+          AuraLabs
+        </span>
+        <span class="trust-logo-pill">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/></svg>
+          SaaSFlow
+        </span>
+        <span class="trust-logo-pill">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M3 2v12h10V2H3zm-1 0a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V2z"/></svg>
+          OmniVoice
+        </span>
+        <span class="trust-logo-pill">
+          <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7z"/></svg>
+          QuantCloud
+        </span>
       </div>
     </div>
+  </section>
 
-  {% elif user.role == 'staff' %}
-    <!-- ====================================================================
-         STAFF OPERATIONS DASHBOARD PLACEHOLDER
-         ==================================================================== -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h2 class="fw-bold mb-1">Staff Operations Desk</h2>
-        <p class="text-muted mb-0">Signed in as: <strong>{{ user.email }}</strong></p>
-      </div>
-      <span class="badge badge-role-staff fs-6 px-3 py-2 text-uppercase">Staff Member</span>
+  <!-- 4. Modular Audio Intelligence (3 Feature Cards Grid) -->
+  <section class="landing-container" id="capabilities" style="margin-bottom: 140px;">
+    <div class="text-center mb-5">
+      <h2 class="font-h2 mb-3">Modular Audio Intelligence</h2>
+      <p class="text-muted mx-auto" style="max-width: 580px;">
+        State-of-the-art generative voice pipelines paired with automated subscription billing and scalable cloud architecture.
+      </p>
     </div>
 
     <div class="row g-4">
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Finance Analytics</h6>
-            <p class="small text-muted">Real-time revenue metrics, overdue statements, and key financial aggregates.</p>
-            <a href="{% url 'dashboard:finance' %}" class="btn btn-primary btn-sm">Open Dashboard &rarr;</a>
+      <!-- Feature Card 1 -->
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-card-icon-box">
+            <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
           </div>
+          <h3 class="fs-4 fw-bold mb-2">Text to Speech</h3>
+          <p class="text-muted small leading-relaxed flex-grow-1 mb-4">
+            Convert written text into expressive, human-like voice synthesis with sub-50ms latency across 40+ global languages.
+          </p>
+          <a href="{% url 'catalog:plan_list' %}" class="fw-bold small text-dark text-decoration-none d-inline-flex align-items-center">
+            Explore TTS <span class="ms-1">&rarr;</span>
+          </a>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card-success">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Subscriptions Hub</h6>
-            <p class="small text-muted">Manage quotations, confirm contract states, and verify renewal schedules.</p>
-            <a href="{% url 'subscriptions:list' %}" class="btn btn-outline-primary btn-sm">All Subscriptions &rarr;</a>
+
+      <!-- Feature Card 2 -->
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-card-icon-box">
+            <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path d="M2 10v3M6 6v11M10 3v18M14 8v7M18 5v13M22 10v3" stroke-linecap="round"/>
+            </svg>
           </div>
+          <h3 class="fs-4 fw-bold mb-2">Speech to Text</h3>
+          <p class="text-muted small leading-relaxed flex-grow-1 mb-4">
+            High-fidelity automated transcription, speaker diarization, and semantic timestamping designed for enterprise workloads.
+          </p>
+          <a href="{% url 'catalog:plan_list' %}" class="fw-bold small text-dark text-decoration-none d-inline-flex align-items-center">
+            Explore STT <span class="ms-1">&rarr;</span>
+          </a>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card-warning">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Invoices & Billing</h6>
-            <p class="small text-muted">Audit generated invoices, record offline payments, and track overdue collections.</p>
-            <a href="{% url 'billing:list' %}" class="btn btn-outline-primary btn-sm">All Invoices &rarr;</a>
+
+      <!-- Feature Card 3 -->
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-card-icon-box">
+            <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
           </div>
+          <h3 class="fs-4 fw-bold mb-2">Voice Cloning</h3>
+          <p class="text-muted small leading-relaxed flex-grow-1 mb-4">
+            Instantaneous few-shot voice replication. Retain vocal accents, natural cadence, and nuanced emotional expressivity.
+          </p>
+          <a href="{% url 'catalog:plan_list' %}" class="fw-bold small text-dark text-decoration-none d-inline-flex align-items-center">
+            Explore Cloning <span class="ms-1">&rarr;</span>
+          </a>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card-danger">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Product Catalog</h6>
-            <p class="small text-muted">Review available subscription tiers, products, tax rules, and discount codes.</p>
-            <a href="{% url 'catalog:plan_list' %}" class="btn btn-outline-secondary btn-sm">Catalog Overview &rarr;</a>
+    </div>
+  </section>
+
+  <!-- 5. Product Deep Dive / Precision Control -->
+  <section class="landing-container" style="margin-bottom: 140px;">
+    <div class="row g-5 align-items-center">
+      <div class="col-lg-5">
+        <span class="font-label-caps text-muted d-block mb-2">Precision Control</span>
+        <h2 class="font-h2 mb-4">Fine-tune every syllable</h2>
+        <p class="text-muted mb-4" style="line-height: 1.7;">
+          Engineered for architects who demand complete granular authority over tone, latency, pause cadence, and phoneme balance.
+        </p>
+
+        <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
+          <li class="d-flex align-items-start gap-3">
+            <svg class="text-dark flex-shrink-0 mt-1" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+            </svg>
+            <span class="small text-muted">Controllable stability and clarity thresholds for studio-grade output.</span>
+          </li>
+          <li class="d-flex align-items-start gap-3">
+            <svg class="text-dark flex-shrink-0 mt-1" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+            </svg>
+            <span class="small text-muted">Sub-millisecond audio streaming buffers for real-time conversational agents.</span>
+          </li>
+          <li class="d-flex align-items-start gap-3">
+            <svg class="text-dark flex-shrink-0 mt-1" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+            </svg>
+            <span class="small text-muted">Automated billing telemetry linked to usage per character, word, or token.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-lg-7">
+        <div class="editor-card">
+          <div class="editor-inner-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="font-label-caps text-muted">Transcript Editor</span>
+              <span class="badge bg-light text-dark border small">Aura Studio v2</span>
+            </div>
+
+            <!-- Transcript box -->
+            <div class="bg-light p-3 rounded mb-4 font-monospace small" style="border: 1px solid var(--theme-outline-variant);">
+              "Hello, world. <span class="bg-dark text-white px-2 py-0.5 rounded">This is</span> a synthesized neural voice output with zero artifacts."
+            </div>
+
+            <!-- Precision sliders -->
+            <div class="d-flex flex-column gap-3 mb-4">
+              <div>
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Stability</span>
+                  <span class="fw-bold text-dark">75%</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-dark" role="progressbar" style="width: 75%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Clarity & Boost</span>
+                  <span class="fw-bold text-dark">90%</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-dark" role="progressbar" style="width: 90%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Scrubber bar -->
+            <div class="d-flex align-items-center gap-3 pt-3 border-top">
+              <button class="btn btn-dark rounded-circle d-flex align-items-center justify-content-center p-0 flex-shrink-0" style="width: 38px; height: 38px;">
+                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="m11.596 8.697-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
+                </svg>
+              </button>
+              <div class="progress flex-grow-1" style="height: 4px;">
+                <div class="progress-bar bg-dark" style="width: 35%;"></div>
+              </div>
+              <span class="font-monospace small text-muted">0:04 / 0:12</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  </section>
 
-  {% elif user.is_role_admin %}
-    <!-- ====================================================================
-         ADMINISTRATOR MASTER CONSOLE PLACEHOLDER
-         ==================================================================== -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h2 class="fw-bold mb-1">Administrator Control Center</h2>
-        <p class="text-muted mb-0">System Authority &bull; Full oversight of users, billing engines, and system catalog.</p>
-      </div>
-      <span class="badge badge-role-admin fs-6 px-3 py-2 text-uppercase">Super Administrator</span>
-    </div>
+  <!-- 6. Developer / API Section (Dark Feature Panel) -->
+  <section class="landing-container" id="developer-api" style="margin-bottom: 140px;">
+    <div class="row g-5 align-items-center">
+      <!-- Dark Code Terminal Card (24px radius, #111318) -->
+      <div class="col-lg-6 order-2 order-lg-1">
+        <div class="dark-feature-panel">
+          <div class="window-dots">
+            <span class="window-dot" style="background-color: #ef4444;"></span>
+            <span class="window-dot" style="background-color: #eab308;"></span>
+            <span class="window-dot" style="background-color: #22c55e;"></span>
+          </div>
 
-    <div class="row g-4 mb-4">
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Finance Dashboard</h6>
-            <p class="small text-muted">High-level financial KPIs, revenue aggregation, and cashflow reports.</p>
-            <a href="{% url 'dashboard:finance' %}" class="btn btn-primary btn-sm">Open Analytics &rarr;</a>
-          </div>
+          <pre class="code-pre"><code><span class="code-keyword">import</span> brightloop
+
+client = brightloop.Client(api_key=<span class="code-string">"bl_live_sec_9941x"</span>)
+
+<span class="code-comment"># Generate speech stream & track billable seconds</span>
+response = client.audio.speech.create(
+    model=<span class="code-string">"aura-v2-english"</span>,
+    voice=<span class="code-string">"echo"</span>,
+    input=<span class="code-string">"Precision voice infrastructure engineered for scale."</span>
+)
+
+response.stream_to_file(<span class="code-string">"output.mp3"</span>)
+<span class="code-comment"># &check; Invoice line auto-billed via recurring contract</span></code></pre>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card-danger">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Staff Management</h6>
-            <p class="small text-muted">Provision new internal staff accounts (Admin privilege only).</p>
-            <a href="{% url 'accounts:staff_create' %}" class="btn btn-outline-danger btn-sm">Add Staff User &rarr;</a>
-          </div>
+
+      <!-- Developer Text Info -->
+      <div class="col-lg-6 order-1 order-lg-2">
+        <h2 class="font-h2 mb-4">Built for Developers</h2>
+        <p class="text-muted mb-4" style="line-height: 1.7;">
+          Simple REST, WebSocket, and SDK endpoints to embed intelligent voice and automated subscription contracts directly into your production codebase.
+        </p>
+
+        <div class="d-flex flex-wrap gap-2 mb-4">
+          <span class="badge bg-light text-dark border px-3 py-2">Low Latency &lt;50ms</span>
+          <span class="badge bg-light text-dark border px-3 py-2">REST &amp; WebSocket APIs</span>
+          <span class="badge bg-light text-dark border px-3 py-2">Python &amp; Node SDKs</span>
         </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card-success">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Subscription Engine</h6>
-            <p class="small text-muted">Manage global subscriptions, state transitions, and automated billing tasks.</p>
-            <a href="{% url 'subscriptions:list' %}" class="btn btn-outline-primary btn-sm">View Subscriptions &rarr;</a>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card-warning">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Django Admin</h6>
-            <p class="small text-muted">Direct low-level database CRUD operations for all registered models.</p>
-            <a href="/admin/" target="_blank" class="btn btn-outline-dark btn-sm">Open Django Admin &nearr;</a>
-          </div>
-        </div>
+
+        <a href="{% url 'catalog:plan_list' %}" class="fw-bold text-dark text-decoration-none d-inline-flex align-items-center">
+          Read the Documentation <span class="ms-1">&rarr;</span>
+        </a>
       </div>
     </div>
-  {% endif %}
+  </section>
 
-</div>
+  <!-- 7. Use Cases Grid (6 Modular Cards) -->
+  <section class="landing-container" id="applications" style="margin-bottom: 140px;">
+    <div class="text-center mb-5">
+      <h2 class="font-h2 mb-3">Endless Applications</h2>
+      <p class="text-muted mx-auto" style="max-width: 580px;">
+        Powering interactive conversational agents, accessibility tools, narrative media, and gaming across millions of streams.
+      </p>
+    </div>
+
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
+          <div class="mb-3 text-dark">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <h4 class="fs-5 fw-bold mb-2">Voice Assistants</h4>
+          <p class="text-muted small leading-relaxed mb-0">Human-sounding customer support agents with fluid turn-taking.</p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
+          <div class="mb-3 text-dark">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <h4 class="fs-5 fw-bold mb-2">Audiobooks & Narration</h4>
+          <p class="text-muted small leading-relaxed mb-0">Multi-character long-form narration with dynamic pacing and emotional intonation.</p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
+          <div class="mb-3 text-dark">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h4 class="fs-5 fw-bold mb-2">Global Localization</h4>
+          <p class="text-muted small leading-relaxed mb-0">Translate and dub spoken media in 40+ native accents seamlessly.</p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
+          <div class="mb-3 text-dark">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="6 2 18 2 18 6 6 6 6 2"/><rect x="3" y="6" width="18" height="14" rx="2"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+          </div>
+          <h4 class="fs-5 fw-bold mb-2">Gaming & NPCs</h4>
+          <p class="text-muted small leading-relaxed mb-0">Immersive procedural voice generation for in-game characters.</p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
+          <div class="mb-3 text-dark">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><path d="M15 10H9l-2 9h2l1-4h4l1 4h2l-2-9z"/></svg>
+          </div>
+          <h4 class="fs-5 fw-bold mb-2">Accessibility</h4>
+          <p class="text-muted small leading-relaxed mb-0">Real-time screen reading and assistive voice synthesis for accessibility compliance.</p>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
+          <div class="mb-3 text-dark">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+          </div>
+          <h4 class="fs-5 fw-bold mb-2">Podcasts & Studio</h4>
+          <p class="text-muted small leading-relaxed mb-0">Automated show intros, vocal enhancements, and synthetic co-hosts.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. Simple, Transparent Pricing (Dynamic from Plan model) -->
+  <section class="landing-container" id="pricing" style="margin-bottom: 140px;">
+    <div class="text-center mb-5">
+      <h2 class="font-h2 mb-3">Simple, Transparent Pricing</h2>
+      <p class="text-muted mx-auto" style="max-width: 580px;">
+        Predictable recurring tiers designed to scale from indie creators to global infrastructure.
+      </p>
+    </div>
+
+    {% get_plans as plans_list %}
+    <div class="row g-4 justify-content-center align-items-stretch">
+      {% for plan in plans_list %}
+        <div class="col-md-6 col-lg-3">
+          <div class="pricing-card {% if 'Professional' in plan.name or 'Pro' in plan.name or forloop.counter == 3 %}pricing-card-popular{% endif %}">
+            {% if 'Professional' in plan.name or 'Pro' in plan.name or forloop.counter == 3 %}
+              <div class="popular-badge">Most Popular</div>
+            {% endif %}
+
+            <h3 class="fs-5 fw-bold text-dark mb-2">{{ plan.name }}</h3>
+            
+            <div class="mb-4">
+              <span class="display-6 fw-bold text-dark">${{ plan.price|floatformat:0 }}</span>
+              <span class="text-muted small">/{{ plan.billing_period|lower|default:"mo" }}</span>
+            </div>
+
+            <p class="text-muted small mb-4 flex-grow-1">
+              {% if plan.renewable %}
+                Full automated renewal support, instant provisioning, and recurring invoicing.
+              {% else %}
+                One-time or flexible pay-as-you-go capacity for targeted workflows.
+              {% endif %}
+            </p>
+
+            <a href="{% url 'accounts:signup' %}" class="btn w-full {% if 'Professional' in plan.name or 'Pro' in plan.name or forloop.counter == 3 %}btn-primary{% else %}btn-outline-secondary{% endif %} rounded-pill py-2 font-medium">
+              {% if 'Enterprise' in plan.name %}
+                Contact Sales
+              {% else %}
+                Start Trial
+              {% endif %}
+            </a>
+          </div>
+        </div>
+      {% empty %}
+        <!-- Fallback static plan tiers matching DESIGN.md if database has no seeded plans -->
+        <div class="col-md-6 col-lg-3">
+          <div class="pricing-card">
+            <h3 class="fs-5 fw-bold text-dark mb-2">Starter</h3>
+            <div class="mb-4"><span class="display-6 fw-bold text-dark">$25</span><span class="text-muted small">/mo</span></div>
+            <p class="text-muted small mb-4 flex-grow-1">Basic synthetic voice generation with automated weekly billing.</p>
+            <a href="{% url 'accounts:signup' %}" class="btn btn-outline-secondary rounded-pill py-2">Start Trial</a>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="pricing-card pricing-card-popular">
+            <div class="popular-badge">Most Popular</div>
+            <h3 class="fs-5 fw-bold text-dark mb-2">Professional</h3>
+            <div class="mb-4"><span class="display-6 fw-bold text-dark">$99</span><span class="text-muted small">/mo</span></div>
+            <p class="text-muted small mb-4 flex-grow-1">Studio quality models, high concurrency, and automated monthly billing.</p>
+            <a href="{% url 'accounts:signup' %}" class="btn btn-primary rounded-pill py-2">Go Pro</a>
+          </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+          <div class="pricing-card">
+            <h3 class="fs-5 fw-bold text-dark mb-2">Enterprise</h3>
+            <div class="mb-4"><span class="display-6 fw-bold text-dark">$999</span><span class="text-muted small">/yr</span></div>
+            <p class="text-muted small mb-4 flex-grow-1">Dedicated cloud capacity, custom SLAs, and custom tax invoicing.</p>
+            <a href="{% url 'accounts:signup' %}" class="btn btn-outline-secondary rounded-pill py-2">Contact Sales</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- 9. Enterprise Security & Scale Section -->
+  <section class="landing-container border-top border-bottom py-5" id="enterprise" style="margin-bottom: 140px;">
+    <div class="row g-5 align-items-center py-4">
+      <div class="col-lg-6">
+        <h2 class="font-h2 mb-3">Enterprise-grade security and scale</h2>
+        <p class="text-muted mb-4" style="line-height: 1.7;">
+          Engineered for mission-critical infrastructure. Multi-region deployments, automated audit trails, and strict compliance certification.
+        </p>
+        <a href="{% url 'catalog:plan_list' %}" class="fw-bold text-dark text-decoration-none d-inline-flex align-items-center">
+          Learn about Enterprise <span class="ms-1">&rarr;</span>
+        </a>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="security-tile">
+              <span class="fw-bold text-dark fs-5">SOC 2 Type II</span>
+              <span class="text-muted small">Certified</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="security-tile">
+              <span class="fw-bold text-dark fs-5">GDPR</span>
+              <span class="text-muted small">Compliant</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="security-tile">
+              <span class="fw-bold text-dark fs-5">HIPAA</span>
+              <span class="text-muted small">Ready</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="security-tile">
+              <span class="fw-bold text-dark fs-5">99.99%</span>
+              <span class="text-muted small">Uptime SLA</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10. Ready to Build Pre-Footer Banner -->
+  <section class="landing-container text-center" style="margin-bottom: 120px;">
+    <h2 class="display-4 fw-bold tracking-tight mb-4">Ready to build?</h2>
+    <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-pill px-5 py-3 fs-5 shadow">
+      Get Started with BrightLoop
+    </a>
+  </section>
+
+  <!-- 11. Minimalist Modern Footer -->
+  <footer class="landing-footer">
+    <div class="landing-container">
+      <div class="row g-5 mb-5">
+        <!-- Brand & Newsletter -->
+        <div class="col-lg-4">
+          <div class="fs-4 fw-bold tracking-tight text-dark mb-3">BrightLoop</div>
+          <p class="text-muted small mb-4" style="max-width: 300px; line-height: 1.6;">
+            Precision-engineered voice and recurring subscription infrastructure for the next generation of applications.
+          </p>
+
+          <label class="form-label font-label-caps text-dark mb-2">Subscribe to platform updates</label>
+          <div class="input-group" style="max-width: 320px;">
+            <input type="email" class="form-control" placeholder="Email address" style="border-radius: 8px 0 0 8px !important;">
+            <button class="btn btn-primary" type="button" style="border-radius: 0 8px 8px 0 !important;">Join</button>
+          </div>
+        </div>
+
+        <!-- Links Column 1: Products -->
+        <div class="col-6 col-md-3 col-lg-2">
+          <h5 class="font-label-caps text-dark mb-3">Products</h5>
+          <ul class="list-unstyled d-flex flex-column gap-2">
+            <li><a href="#capabilities">Text to Speech</a></li>
+            <li><a href="#capabilities">Speech to Text</a></li>
+            <li><a href="#capabilities">Voice Cloning</a></li>
+            <li><a href="#pricing">Pricing Plans</a></li>
+          </ul>
+        </div>
+
+        <!-- Links Column 2: Developers -->
+        <div class="col-6 col-md-3 col-lg-2">
+          <h5 class="font-label-caps text-dark mb-3">Developers</h5>
+          <ul class="list-unstyled d-flex flex-column gap-2">
+            <li><a href="#developer-api">Documentation</a></li>
+            <li><a href="#developer-api">API Reference</a></li>
+            <li><a href="#enterprise">Status &amp; Uptime</a></li>
+            <li><a href="#capabilities">Changelog</a></li>
+          </ul>
+        </div>
+
+        <!-- Links Column 3: Company -->
+        <div class="col-6 col-md-3 col-lg-2">
+          <h5 class="font-label-caps text-dark mb-3">Company</h5>
+          <ul class="list-unstyled d-flex flex-column gap-2">
+            <li><a href="#">About Us</a></li>
+            <li><a href="#">Engineering Blog</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Contact</a></li>
+          </ul>
+        </div>
+
+        <!-- Links Column 4: Legal -->
+        <div class="col-6 col-md-3 col-lg-2">
+          <h5 class="font-label-caps text-dark mb-3">Legal</h5>
+          <ul class="list-unstyled d-flex flex-column gap-2">
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Security Overview</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Footer Bottom Bar -->
+      <div class="pt-4 border-top d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-muted small">
+        <div>
+          &copy; {% now "Y" %} BrightLoop Inc. Precision-engineered subscription infrastructure.
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <a href="#" class="text-muted" title="Language">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </a>
+          <a href="#" class="text-muted" title="Community">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+{% else %}
+  <!-- ========================================================================
+       LOGGED-IN USER CONSOLE (Customer, Staff, Admin - Upgraded with 24px cards)
+       ======================================================================== -->
+  <div class="container-fluid py-4">
+    {% if user.role == 'customer' %}
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold mb-1">Welcome back, {{ user.first_name|default:user.email }}!</h2>
+          <p class="text-muted mb-0">Customer Portal &bull; Self-service subscription management</p>
+        </div>
+        <span class="badge bg-primary text-uppercase px-3 py-2">Customer Account</span>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-md-4">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Contracts</span>
+              <h4 class="fw-bold mb-2">My Subscriptions</h4>
+              <p class="text-muted small mb-4">Review active recurring plans, renewal terms, and contract status.</p>
+              <a href="{% url 'subscriptions:list' %}" class="btn btn-primary btn-sm">View Subscriptions &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Financial Statements</span>
+              <h4 class="fw-bold mb-2">My Invoices &amp; Receipts</h4>
+              <p class="text-muted small mb-4">Inspect itemized billing statements, payment receipts, and balance due.</p>
+              <a href="{% url 'billing:list' %}" class="btn btn-outline-secondary btn-sm">View Invoices &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Add-ons &amp; Tiers</span>
+              <h4 class="fw-bold mb-2">Catalog &amp; Upgrades</h4>
+              <p class="text-muted small mb-4">Explore additional tiers, add-on products, and seasonal promotional plans.</p>
+              <a href="{% url 'catalog:plan_list' %}" class="btn btn-outline-secondary btn-sm">Explore Plans &rarr;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {% elif user.role == 'staff' %}
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold mb-1">Staff Operations Desk</h2>
+          <p class="text-muted mb-0">Signed in as: <strong>{{ user.email }}</strong></p>
+        </div>
+        <span class="badge bg-secondary text-uppercase px-3 py-2">Staff Operations</span>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Analytics</span>
+              <h5 class="fw-bold mb-2">Finance Dashboard</h5>
+              <p class="small text-muted mb-4">Real-time revenue metrics, overdue statements, and key financial aggregates.</p>
+              <a href="{% url 'dashboard:finance' %}" class="btn btn-primary btn-sm">Open Dashboard &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Contracts</span>
+              <h5 class="fw-bold mb-2">Subscriptions Hub</h5>
+              <p class="small text-muted mb-4">Manage quotations, confirm contract states, and verify renewal schedules.</p>
+              <a href="{% url 'subscriptions:list' %}" class="btn btn-outline-secondary btn-sm">All Subscriptions &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Receivables</span>
+              <h5 class="fw-bold mb-2">Invoices &amp; Billing</h5>
+              <p class="small text-muted mb-4">Audit generated invoices, record offline payments, and track overdue collections.</p>
+              <a href="{% url 'billing:list' %}" class="btn btn-outline-secondary btn-sm">All Invoices &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Tiers &amp; Add-ons</span>
+              <h5 class="fw-bold mb-2">Product Catalog</h5>
+              <p class="small text-muted mb-4">Review available subscription tiers, products, tax rules, and discount codes.</p>
+              <a href="{% url 'catalog:plan_list' %}" class="btn btn-outline-secondary btn-sm">Catalog Overview &rarr;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {% elif user.is_role_admin %}
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold mb-1">Administrator Control Center</h2>
+          <p class="text-muted mb-0">System Authority &bull; Full oversight of users, billing engines, and system catalog.</p>
+        </div>
+        <span class="badge bg-dark text-uppercase px-3 py-2">Super Administrator</span>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Analytics</span>
+              <h5 class="fw-bold mb-2">Finance Dashboard</h5>
+              <p class="small text-muted mb-4">High-level financial KPIs, revenue aggregation, and cashflow reports.</p>
+              <a href="{% url 'dashboard:finance' %}" class="btn btn-primary btn-sm">Open Analytics &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Governance</span>
+              <h5 class="fw-bold mb-2">Staff Management</h5>
+              <p class="small text-muted mb-4">Provision new internal staff accounts (Admin privilege only).</p>
+              <a href="{% url 'accounts:staff_create' %}" class="btn btn-outline-secondary btn-sm">Add Staff User &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Contracts</span>
+              <h5 class="fw-bold mb-2">Subscription Engine</h5>
+              <p class="small text-muted mb-4">Manage global subscriptions, state transitions, and automated billing tasks.</p>
+              <a href="{% url 'subscriptions:list' %}" class="btn btn-outline-secondary btn-sm">View Subscriptions &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Low-Level CRUD</span>
+              <h5 class="fw-bold mb-2">Django Admin</h5>
+              <p class="small text-muted mb-4">Direct low-level database CRUD operations for all registered models.</p>
+              <a href="/admin/" target="_blank" class="btn btn-outline-secondary btn-sm">Open Django Admin &nearr;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
 {% endblock %}

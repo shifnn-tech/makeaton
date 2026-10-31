@@ -1,4 +1,4 @@
-﻿{% comment %}
+{% comment %}
   templates/base.html
   ====================
   HOW TO USE:
@@ -43,9 +43,12 @@
   <!-- BrightLoop Design System (Sidebar, Cards, Tables, Badges, Forms) -->
   <link rel="stylesheet" href="{% static 'css/brightloop.css' %}">
 
+  <!-- Auralis Engineered Theme (DESIGN.md - 24px cards, black buttons, 8px inputs) -->
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+
   {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 
   <!-- ========================================================================
        SIDEBAR NAVIGATION (Desktop: fixed | Mobile: offcanvas)
