@@ -1,0 +1,534 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}What-If Revenue Simulator - BrightLoop{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/intelligence.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- ========================================================================
+       MODULE HEADER & NAVIGATION TABS
+       ======================================================================== -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="fw-bold mb-1">Revenue Intelligence</h2>
+      <p class="text-muted mb-0">Interactive financial modeling, parameter sensitivity analysis, and multi-month forecasting</p>
+    </div>
+    <div>
+      <span class="badge bg-primary-brand px-3 py-2 text-uppercase">Admin / Staff Access Only</span>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav intelligence-nav mb-4">
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'intelligence:dashboard' %}">
+        Revenue Dashboard
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'intelligence:forecast' %}">
+        Forecast & Churn Risk
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'intelligence:leaks' %}">
+        Leak Detector
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link active" href="{% url 'intelligence:simulator' %}">
+        <svg class="bi me-1" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M6 1v3H1V1h5zM1 0a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1H1zm14 12v3h-5v-3h5zm-5-1a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h-5zM6 8v7H1V8h5zM1 7a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1H1zm14-6v7h-5V1h5zm-5-1a1 1 0 0 0-1 1v7a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1V1a1 1 0 0 0-1-1h-5z"/>
+        </svg>
+        What-If Simulator
+      </a>
+    </li>
+  </ul>
+
+  <!-- ========================================================================
+       DISCLAIMER CALLOUT (Required by Specification)
+       ======================================================================== -->
+  <div class="alert alert-warning border-warning d-flex align-items-center mb-4 shadow-sm" role="alert">
+    <svg class="bi flex-shrink-0 me-3 text-warning" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
+      <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+    </svg>
+    <div>
+      <h6 class="alert-heading fw-bold mb-1">Simulated. Based on assumptions, not real data.</h6>
+      <p class="mb-0 small">
+        This simulation models prospective 12-month recurring revenue trajectories based on hypothetical user inputs. Projections are mathematical estimates and do not represent contractual commitments or actual bank receipts.
+      </p>
+    </div>
+  </div>
+
+  <div class="row g-4 mb-4">
+    <!-- ======================================================================
+         LEFT PANEL: THE THREE INTERACTIVE SLIDERS & PRESETS
+         ====================================================================== -->
+    <div class="col-lg-5">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0">Simulation Levers</h5>
+          <span class="badge bg-primary text-white">Live Client-Side JS</span>
+        </div>
+        <div class="card-body p-4">
+
+          <!-- Current Baseline Callout -->
+          <div class="p-3 bg-light rounded mb-4 d-flex justify-content-between align-items-center">
+            <div>
+              <small class="text-muted text-uppercase fw-bold d-block">Starting Baseline MRR</small>
+              <span class="fs-4 fw-bold text-dark" id="displayBaseMRR">${{ base_mrr|floatformat:2|intcomma }}</span>
+            </div>
+            <div class="text-end">
+              <small class="text-muted text-uppercase fw-bold d-block">Active Subscriptions</small>
+              <span class="fs-5 fw-bold text-secondary">{{ active_subscribers_count|intcomma }}</span>
+            </div>
+          </div>
+
+          <!-- Slider 1: Price Increase % -->
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label for="priceSlider" class="form-label fw-bold mb-0">
+                1. Price Adjustment %
+              </label>
+              <span class="badge bg-primary fs-6 font-monospace" id="priceBadge">+0.0%</span>
+            </div>
+            <input type="range" class="form-range" id="priceSlider" min="-30" max="50" step="1" value="0">
+            <div class="d-flex justify-content-between text-muted small">
+              <span>-30% (Discount)</span>
+              <span>0% (Status Quo)</span>
+              <span>+50% (Expansion)</span>
+            </div>
+            <small class="text-muted d-block mt-1">Shifts the starting recurring price/ARPU across subscriptions.</small>
+          </div>
+
+          <!-- Slider 2: Monthly Customer Growth % -->
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label for="growthSlider" class="form-label fw-bold mb-0">
+                2. Monthly Customer Growth %
+              </label>
+              <span class="badge bg-success fs-6 font-monospace" id="growthBadge">+5.0% / mo</span>
+            </div>
+            <input type="range" class="form-range" id="growthSlider" min="0" max="30" step="0.5" value="5.0">
+            <div class="d-flex justify-content-between text-muted small">
+              <span>0% (Flat)</span>
+              <span>15%</span>
+              <span>30% (Hyper-growth)</span>
+            </div>
+            <small class="text-muted d-block mt-1">Monthly rate of incoming new customer acquisitions.</small>
+          </div>
+
+          <!-- Slider 3: Monthly Churn % -->
+          <div class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label for="churnSlider" class="form-label fw-bold mb-0">
+                3. Monthly Churn Rate %
+              </label>
+              <span class="badge bg-danger fs-6 font-monospace" id="churnBadge">3.0% / mo</span>
+            </div>
+            <input type="range" class="form-range" id="churnSlider" min="0" max="20" step="0.5" value="3.0">
+            <div class="d-flex justify-content-between text-muted small">
+              <span>0% (Perfect Retention)</span>
+              <span>10%</span>
+              <span>20% (High Attrition)</span>
+            </div>
+            <small class="text-muted d-block mt-1">Monthly rate of subscription cancellations.</small>
+          </div>
+
+          <!-- Net Growth Summary Strip -->
+          <div class="p-2 px-3 rounded bg-light border d-flex justify-content-between align-items-center mb-4">
+            <span class="text-muted small fw-bold">Net Monthly Compounding Rate:</span>
+            <span class="badge bg-info text-dark font-monospace fs-6" id="netGrowthBadge">+2.00% / mo</span>
+          </div>
+
+          <!-- Quick Scenario Presets -->
+          <div>
+            <label class="form-label small fw-bold text-muted text-uppercase mb-2">Scenario Presets</label>
+            <div class="d-flex flex-wrap gap-2">
+              <button type="button" class="btn btn-sm btn-outline-secondary" onclick="applyPreset(0, 0, 0)">Status Quo</button>
+              <button type="button" class="btn btn-sm btn-outline-primary" onclick="applyPreset(0, 5, 3)">Healthy Growth</button>
+              <button type="button" class="btn btn-sm btn-outline-success" onclick="applyPreset(15, 8, 3.5)">Price Hike & Expansion</button>
+              <button type="button" class="btn btn-sm btn-outline-dark" onclick="applyPreset(10, 15, 5)">Aggressive Scale</button>
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="applyPreset(0, 2, 8)">High Churn Stress</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================================
+         RIGHT PANEL: DYNAMIC LIVE KPIS & CHART.JS 12-MONTH TRAJECTORY
+         ====================================================================== -->
+    <div class="col-lg-7">
+      <!-- Live Dynamic KPI Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6">
+          <div class="card h-100 shadow-sm border-0 stat-card-primary">
+            <div class="card-body">
+              <span class="text-muted small text-uppercase fw-bold">Month 12 Projected MRR</span>
+              <h2 class="display-6 fw-bold my-1 text-primary-brand" id="kpiMonth12MRR">
+                ${{ sim_data.month_12_mrr|floatformat:2|intcomma }}
+              </h2>
+              <small class="text-muted">Monthly run rate at end of 12 months</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6">
+          <div class="card h-100 shadow-sm border-0 stat-card-success">
+            <div class="card-body">
+              <span class="text-muted small text-uppercase fw-bold">Projected ARR (Month 12)</span>
+              <h2 class="display-6 fw-bold my-1 text-success" id="kpiProjectedARR">
+                ${{ sim_data.projected_arr|floatformat:2|intcomma }}
+              </h2>
+              <small class="text-muted">Annualized run rate (Month 12 MRR &times; 12)</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6">
+          <div class="card h-100 shadow-sm border-0 bg-white">
+            <div class="card-body">
+              <span class="text-muted small text-uppercase fw-bold">12-Month Cumulative Gross</span>
+              <h3 class="fw-bold my-1 text-dark" id="kpiCumulativeRevenue">
+                ${{ sim_data.cumulative_revenue|floatformat:2|intcomma }}
+              </h3>
+              <small class="text-muted">Total projected cash inflow across months 1..12</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6">
+          <div class="card h-100 shadow-sm border-0 bg-white">
+            <div class="card-body">
+              <span class="text-muted small text-uppercase fw-bold">Net Delta vs Status Quo</span>
+              <h3 class="fw-bold my-1 text-success" id="kpiDelta">
+                +${{ sim_data.delta_vs_baseline|floatformat:2|intcomma }}
+              </h3>
+              <small class="text-muted" id="kpiDeltaSub">Compared to constant current MRR</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chart.js 12-Month Interactive Projection -->
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+          <h6 class="fw-bold mb-0">12-Month Projected MRR Trajectory vs Status Quo Baseline</h6>
+          <span class="badge bg-light text-dark border">Live Interactive</span>
+        </div>
+        <div class="card-body">
+          <div class="chart-container" style="height: 300px;">
+            <canvas id="simulationChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       FORMULA TRANSPARENCY & METHODOLOGY BOX (Required by Specification)
+       ======================================================================== -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light">
+      <h6 class="fw-bold mb-0">Formulas Used & Mathematical Methodology</h6>
+    </div>
+    <div class="card-body">
+      <div class="row g-4">
+        <div class="col-md-6">
+          <h6 class="fw-bold text-dark">Compounding Projection Formulas</h6>
+          <ul class="list-unstyled small mb-0">
+            <li class="mb-2">
+              <strong>1. Net Monthly Compounding Rate:</strong>
+              <div class="font-monospace text-muted bg-light p-2 rounded mt-1">
+                Net_Growth_Rate = (Customer_Growth_% - Churn_%) / 100
+              </div>
+            </li>
+            <li class="mb-2">
+              <strong>2. Month 1 MRR (Initial Price & Growth Shift):</strong>
+              <div class="font-monospace text-muted bg-light p-2 rounded mt-1">
+                MRR_1 = Base_MRR &times; (1 + Price_Increase_% / 100) &times; (1 + Net_Growth_Rate)
+              </div>
+            </li>
+            <li class="mb-2">
+              <strong>3. Month t MRR (Compound Recurrence):</strong>
+              <div class="font-monospace text-muted bg-light p-2 rounded mt-1">
+                MRR_t = MRR_(t-1) &times; (1 + Net_Growth_Rate) for t = 2, 3, ..., 12
+              </div>
+            </li>
+          </ul>
+        </div>
+        <div class="col-md-6">
+          <h6 class="fw-bold text-dark">Annualization & Cumulative Impact</h6>
+          <ul class="list-unstyled small mb-0">
+            <li class="mb-2">
+              <strong>4. Month 12 Projected ARR:</strong>
+              <div class="font-monospace text-muted bg-light p-2 rounded mt-1">
+                ARR_12 = MRR_12 &times; 12
+              </div>
+            </li>
+            <li class="mb-2">
+              <strong>5. 12-Month Cumulative Cash Inflow:</strong>
+              <div class="font-monospace text-muted bg-light p-2 rounded mt-1">
+                Cumulative_Revenue = &sum;(MRR_1 + MRR_2 + ... + MRR_12)
+              </div>
+            </li>
+            <li class="mb-2">
+              <strong>6. Incremental Impact vs Baseline Status Quo:</strong>
+              <div class="font-monospace text-muted bg-light p-2 rounded mt-1">
+                Variance = Cumulative_Revenue - (Base_MRR &times; 12)
+              </div>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       MONTHLY BREAKDOWN TABLE (12 Months)
+       ======================================================================== -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3">
+      <h6 class="fw-bold mb-0">Simulated 12-Month Financial Schedule</h6>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 font-monospace small" id="simulationTable">
+        <thead class="table-light font-sans-serif">
+          <tr>
+            <th>Month</th>
+            <th>Calendar Period</th>
+            <th class="text-end">Projected MRR</th>
+            <th class="text-end">Projected ARR</th>
+            <th class="text-end">Status Quo Base</th>
+            <th class="text-end">Monthly Variance</th>
+          </tr>
+        </thead>
+        <tbody id="simulationTableBody">
+          {% for p in sim_data.projections %}
+            <tr>
+              <td class="fw-bold">Month {{ p.step }}</td>
+              <td>{{ p.month_name }}</td>
+              <td class="text-end fw-bold text-primary">${{ p.mrr|floatformat:2|intcomma }}</td>
+              <td class="text-end text-muted">${{ p.arr|floatformat:2|intcomma }}</td>
+              <td class="text-end text-muted">${{ p.baseline_mrr|floatformat:2|intcomma }}</td>
+              <td class="text-end fw-bold {% if p.mrr >= p.baseline_mrr %}text-success{% else %}text-danger{% endif %}">
+                {% if p.mrr >= p.baseline_mrr %}+{% endif %}${{ p.mrr|floatformat:2|intcomma }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Local Chart.js (Strictly offline, NO CDN) -->
+<script src="{% static 'js/chart.min.js' %}"></script>
+
+<script>
+  // Initial baseline data from server
+  const BASE_MRR = parseFloat("{{ base_mrr }}") || 0.0;
+  const initialLabels = {{ chart_labels_json|safe }};
+  const initialSimulatedData = {{ chart_simulated_json|safe }};
+  const initialBaselineData = {{ chart_baseline_json|safe }};
+
+  // DOM Elements
+  const priceSlider = document.getElementById('priceSlider');
+  const growthSlider = document.getElementById('growthSlider');
+  const churnSlider = document.getElementById('churnSlider');
+
+  const priceBadge = document.getElementById('priceBadge');
+  const growthBadge = document.getElementById('growthBadge');
+  const churnBadge = document.getElementById('churnBadge');
+  const netGrowthBadge = document.getElementById('netGrowthBadge');
+
+  const kpiMonth12MRR = document.getElementById('kpiMonth12MRR');
+  const kpiProjectedARR = document.getElementById('kpiProjectedARR');
+  const kpiCumulativeRevenue = document.getElementById('kpiCumulativeRevenue');
+  const kpiDelta = document.getElementById('kpiDelta');
+  const tableBody = document.getElementById('simulationTableBody');
+
+  // Format currency helper
+  function formatMoney(amount) {
+    return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // Initialize Chart.js
+  const ctx = document.getElementById('simulationChart').getContext('2d');
+  const simulationChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: initialLabels,
+      datasets: [
+        {
+          label: 'Simulated MRR',
+          data: initialSimulatedData,
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37, 99, 235, 0.08)',
+          fill: true,
+          tension: 0.3,
+          borderWidth: 3,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#2563eb',
+        },
+        {
+          label: 'Status Quo Baseline MRR',
+          data: initialBaselineData,
+          borderColor: '#94a3b8',
+          borderDash: [5, 5],
+          fill: false,
+          pointRadius: 0,
+          borderWidth: 2,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false,
+      },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              let label = context.dataset.label || '';
+              if (label) {
+                label += ': ';
+              }
+              if (context.parsed.y !== null) {
+                label += formatMoney(context.parsed.y);
+              }
+              return label;
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: false,
+          ticks: {
+            callback: function(value) {
+              return '$' + (value >= 1000 ? (value / 1000).toFixed(0) + 'k' : value);
+            }
+          },
+          grid: {
+            color: '#f1f5f9'
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          }
+        }
+      }
+    }
+  });
+
+  // Pure JavaScript simulation engine (Updates 100% in-browser, NO RELOAD)
+  function recalculateSimulation() {
+    const p = parseFloat(priceSlider.value) || 0.0;
+    const g = parseFloat(growthSlider.value) || 0.0;
+    const c = parseFloat(churnSlider.value) || 0.0;
+
+    // Update slider badges
+    priceBadge.textContent = (p >= 0 ? '+' : '') + p.toFixed(1) + '%';
+    growthBadge.textContent = '+' + g.toFixed(1) + '% / mo';
+    churnBadge.textContent = c.toFixed(1) + '% / mo';
+
+    const netRate = (g - c) / 100.0;
+    const netRateDisplay = ((g - c) >= 0 ? '+' : '') + (g - c).toFixed(2) + '% / mo';
+    netGrowthBadge.textContent = netRateDisplay;
+    if ((g - c) >= 0) {
+      netGrowthBadge.className = 'badge bg-success font-monospace fs-6';
+    } else {
+      netGrowthBadge.className = 'badge bg-danger font-monospace fs-6';
+    }
+
+    // Run 12-month projections
+    let currentMRR = Math.max(0, BASE_MRR * (1.0 + (p / 100.0)));
+    const simulatedSeries = [];
+    let cumulative = 0.0;
+    let tableHtml = '';
+
+    for (let m = 1; m <= 12; m++) {
+      currentMRR = Math.max(0, currentMRR * (1.0 + netRate));
+      cumulative += currentMRR;
+      simulatedSeries.push(currentMRR);
+
+      const mrrArr = currentMRR * 12.0;
+      const diff = currentMRR - BASE_MRR;
+      const diffSign = diff >= 0 ? '+' : '';
+      const diffClass = diff >= 0 ? 'text-success' : 'text-danger';
+
+      const labelText = initialLabels[m - 1] || ('Month ' + m);
+      const calendarText = labelText.includes('(') ? labelText.split('(')[1].replace(')', '') : ('M' + m);
+
+      tableHtml += `
+        <tr>
+          <td class="fw-bold">Month ${m}</td>
+          <td>${calendarText}</td>
+          <td class="text-end fw-bold text-primary">${formatMoney(currentMRR)}</td>
+          <td class="text-end text-muted">${formatMoney(mrrArr)}</td>
+          <td class="text-end text-muted">${formatMoney(BASE_MRR)}</td>
+          <td class="text-end fw-bold ${diffClass}">${diffSign}${formatMoney(diff)}</td>
+        </tr>
+      `;
+    }
+
+    // Update KPI cards
+    const month12MRR = simulatedSeries[11] || 0.0;
+    const projectedARR = month12MRR * 12.0;
+    const baseline12Mo = BASE_MRR * 12.0;
+    const delta = cumulative - baseline12Mo;
+
+    kpiMonth12MRR.textContent = formatMoney(month12MRR);
+    kpiProjectedARR.textContent = formatMoney(projectedARR);
+    kpiCumulativeRevenue.textContent = formatMoney(cumulative);
+
+    const deltaSign = delta >= 0 ? '+' : '';
+    kpiDelta.textContent = deltaSign + formatMoney(delta);
+    if (delta >= 0) {
+      kpiDelta.className = 'fw-bold my-1 text-success';
+    } else {
+      kpiDelta.className = 'fw-bold my-1 text-danger';
+    }
+
+    // Update table
+    tableBody.innerHTML = tableHtml;
+
+    // Update Chart.js datasets live
+    simulationChart.data.datasets[0].data = simulatedSeries;
+    simulationChart.update('none'); // Update smoothly without full reset
+  }
+
+  // Event Listeners for Live Dragging (input event triggers instantly as user slides)
+  priceSlider.addEventListener('input', recalculateSimulation);
+  growthSlider.addEventListener('input', recalculateSimulation);
+  churnSlider.addEventListener('input', recalculateSimulation);
+
+  // Quick Preset Helper
+  window.applyPreset = function(priceVal, growthVal, churnVal) {
+    priceSlider.value = priceVal;
+    growthSlider.value = growthVal;
+    churnSlider.value = churnVal;
+    recalculateSimulation();
+  };
+</script>
+{% endblock %}

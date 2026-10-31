@@ -33,4 +33,7 @@ urlpatterns = [
 
     # Analytics & Finance Dashboard
     path("dashboard/", include("dashboard.urls", namespace="dashboard")),
+
+    # Revenue Intelligence (Person 3)
+    path("intelligence/", include("intelligence.urls", namespace="intelligence")),
 ]

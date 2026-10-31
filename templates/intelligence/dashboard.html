@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Revenue Intelligence - BrightLoop{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/intelligence.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- ========================================================================
+       MODULE HEADER & NAVIGATION TABS (Person 3 Intelligence Suite)
+       ======================================================================== -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="fw-bold mb-1">Revenue Intelligence</h2>
+      <p class="text-muted mb-0">Automated financial tracking, recurring revenue analytics, and performance intelligence</p>
+    </div>
+    <div>
+      <span class="badge bg-primary-brand px-3 py-2 text-uppercase">Admin / Staff Access Only</span>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav intelligence-nav mb-4">
+    <li class="nav-item">
+      <a class="nav-link active" href="{% url 'intelligence:dashboard' %}">
+        <svg class="bi me-1" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm1 2v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1zm2 3h10v1H3V7zm0 3h10v1H3v-1z"/>
+        </svg>
+        Revenue Dashboard
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'intelligence:forecast' %}">
+        Forecast & Churn Risk
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'intelligence:leaks' %}">
+        Leak Detector
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'intelligence:simulator' %}">
+        What-If Simulator
+      </a>
+    </li>
+  </ul>
+
+  <!-- Methodology / Assumptions Callout (Plain text, no LaTeX) -->
+  <div class="assumptions-box mb-4">
+    <div class="d-flex align-items-center">
+      <svg class="bi me-2 flex-shrink-0 text-primary" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+      </svg>
+      <div>
+        <strong>Intelligence Methodology & Assumptions:</strong>
+        MRR is normalized from active contracts (Daily × 30, Weekly × 4.33, Monthly × 1, Yearly ÷ 12).
+        ARR = MRR × 12. Monthly revenue trend and MoM growth % are computed strictly from completed full months (excluding the incomplete current month to avoid misleading drops).
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       FEATURE 1: KEY PERFORMANCE INDICATORS (KPI CARDS)
+       ======================================================================== -->
+  <div class="row g-4 mb-4">
+    <!-- 1. MRR Card -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card h-100 shadow-sm border-0 stat-card">
+        <div class="card-body">
+          <span class="text-muted small text-uppercase fw-bold">Monthly Recurring Revenue (MRR)</span>
+          <h2 class="display-6 fw-bold my-2 text-primary-brand">${{ mrr_data.mrr|floatformat:2|intcomma }}</h2>
+          <small class="text-muted">Normalized active subscription volume</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. ARR Card -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card h-100 shadow-sm border-0 stat-card-success">
+        <div class="card-body">
+          <span class="text-muted small text-uppercase fw-bold">Annual Run Rate (ARR)</span>
+          <h2 class="display-6 fw-bold my-2 text-success">${{ mrr_data.arr|floatformat:2|intcomma }}</h2>
+          <small class="text-muted">Annualized run rate (MRR &times; 12)</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Active Subscribers -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card h-100 shadow-sm border-0 stat-card-warning">
+        <div class="card-body">
+          <span class="text-muted small text-uppercase fw-bold">Active Subscriptions</span>
+          <h2 class="display-6 fw-bold my-2 text-warning">{{ mrr_data.active_count|intcomma }}</h2>
+          <small class="text-muted">Generating active monthly recurring cashflow</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Last Completed Month Revenue & MoM Growth -->
+    <div class="col-sm-6 col-xl-3">
+      <div class="card h-100 shadow-sm border-0 stat-card-danger">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start">
+            <span class="text-muted small text-uppercase fw-bold">Last Complete Month ({{ trend_data.latest_month_label }})</span>
+            {% if trend_data.latest_mom_growth > 0 %}
+              <span class="trend-badge positive">&uarr; +{{ trend_data.latest_mom_growth }}% MoM</span>
+            {% elif trend_data.latest_mom_growth < 0 %}
+              <span class="trend-badge negative">&darr; {{ trend_data.latest_mom_growth }}% MoM</span>
+            {% else %}
+              <span class="trend-badge neutral">0.0% MoM</span>
+            {% endif %}
+          </div>
+          <h2 class="display-6 fw-bold my-2">${{ trend_data.latest_revenue|floatformat:2|intcomma }}</h2>
+          <div class="small text-muted d-flex justify-content-between align-items-center">
+            <span>Period total: ${{ trend_data.total_period_revenue|floatformat:2|intcomma }}</span>
+            {% if trend_data.has_partial_month %}
+              <span class="badge bg-light text-secondary border" title="Current month-to-date receipts (excluded from completed trend)">
+                {{ trend_data.partial_month_label }} MTD: ${{ trend_data.partial_month_revenue|floatformat:2|intcomma }}
+              </span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       CHART.JS VISUALIZATION & MONTHLY REVENUE AUDIT TABLE
+       ======================================================================== -->
+  <div class="row g-4 mb-4">
+    <!-- Chart Container (Local Chart.js, 100% Offline) -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="fw-bold mb-0">Monthly Revenue Trend (Completed Full Months)</h5>
+            <small class="text-muted">Excludes incomplete current month to provide an accurate growth trajectory</small>
+          </div>
+          <span class="badge bg-secondary-subtle text-secondary small">Settled Payments</span>
+        </div>
+        <div class="card-body">
+          {% if trend_data.data %}
+            <div class="chart-container">
+              <canvas id="revenueTrendChart"></canvas>
+            </div>
+          {% else %}
+            <div class="text-center py-5 text-muted">
+              <p class="mb-0">No payment transaction records found in the database.</p>
+              <small>Run <code>python manage.py seed_data</code> to populate sample payments.</small>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Plan Frequency Breakdown -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 h-100">
+        <div class="card-header bg-light">
+          <h5 class="fw-bold mb-0">MRR by Billing Frequency</h5>
+        </div>
+        <div class="card-body p-0">
+          <ul class="list-group list-group-flush">
+            {% for period_key, info in mrr_data.by_period.items %}
+              <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                <div>
+                  <h6 class="mb-0 fw-semibold text-capitalize">{{ period_key }} Plans</h6>
+                  <small class="text-muted">{{ info.count|intcomma }} subscriber(s)</small>
+                </div>
+                <div class="text-end">
+                  <span class="fw-bold text-primary-brand">${{ info.mrr|floatformat:2|intcomma }}</span>
+                  <div class="small text-muted">/mo contribution</div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Historical Month-by-Month Log Table -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+      <h5 class="fw-bold mb-0">Completed Monthly Revenue & Growth Log</h5>
+      {% if trend_data.has_partial_month %}
+        <span class="badge bg-light text-dark border">
+          Current Month ({{ trend_data.partial_month_label }} Incomplete): ${{ trend_data.partial_month_revenue|floatformat:2|intcomma }} MTD
+        </span>
+      {% endif %}
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Month</th>
+            <th class="text-end">Settled Revenue</th>
+            <th class="text-end">Month-over-Month (MoM) Growth</th>
+            <th class="text-end">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in trend_data.trend %}
+            <tr>
+              <td class="fw-semibold">{{ item.label }}</td>
+              <td class="text-end fw-bold font-monospace">${{ item.revenue|floatformat:2|intcomma }}</td>
+              <td class="text-end">
+                {% if item.growth_pct is not None %}
+                  {% if item.growth_pct > 0 %}
+                    <span class="trend-badge positive">&uarr; +{{ item.growth_pct }}%</span>
+                  {% elif item.growth_pct < 0 %}
+                    <span class="trend-badge negative">&darr; {{ item.growth_pct }}%</span>
+                  {% else %}
+                    <span class="trend-badge neutral">0.0%</span>
+                  {% endif %}
+                {% else %}
+                  <span class="text-muted small">&mdash; (Baseline)</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <span class="badge bg-success-subtle text-success">Completed Month</span>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="4" class="text-center text-muted py-4">No historical revenue data recorded yet.</td>
+            </tr>
+          {% endfor %}
+          {% if trend_data.has_partial_month %}
+            <tr class="table-light text-muted">
+              <td class="fw-semibold">
+                {{ trend_data.partial_month_label }} <span class="badge bg-warning text-dark ms-1">Current Month (Incomplete)</span>
+              </td>
+              <td class="text-end fw-bold font-monospace">${{ trend_data.partial_month_revenue|floatformat:2|intcomma }}</td>
+              <td class="text-end">
+                <span class="text-muted small">&mdash; (In progress)</span>
+              </td>
+              <td class="text-end">
+                <span class="badge bg-warning-subtle text-warning">Month-to-Date</span>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Snippet for Person 4 (Navbar / Sidebar Integration):
+     <li class="nav-item">
+       <a class="nav-link" href="{% url 'intelligence:dashboard' %}">Revenue Intelligence</a>
+     </li>
+-->
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Local Chart.js Script (100% Offline) -->
+<script src="{% static 'js/chart.min.js' %}"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const chartCanvas = document.getElementById("revenueTrendChart");
+  if (!chartCanvas) return;
+
+  const labels = {{ chart_labels_json|safe }};
+  const data = {{ chart_data_json|safe }};
+
+  if (labels.length === 0 || data.length === 0) return;
+
+  const ctx = chartCanvas.getContext("2d");
+
+  // Create subtle gradient background under curve
+  const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+  gradient.addColorStop(0, "rgba(37, 99, 235, 0.25)");
+  gradient.addColorStop(1, "rgba(37, 99, 235, 0.0)");
+
+  new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Settled Monthly Revenue ($)",
+        data: data,
+        borderColor: "#2563eb",
+        backgroundColor: gradient,
+        borderWidth: 2.5,
+        fill: true,
+        tension: 0.35,
+        pointBackgroundColor: "#2563eb",
+        pointBorderColor: "#ffffff",
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return " Revenue: $" + Number(context.parsed.y).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: "#f1f5f9"
+          },
+          ticks: {
+            callback: function(value) {
+              return "$" + Number(value).toLocaleString();
+            }
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          }
+        }
+      }
+    }
+  });
+});
+</script>
+{% endblock %}
