@@ -1,28 +1,6 @@
-{% comment %}
-templates/includes/_sidebar_content.html
-==========================================
-HOW TEAMMATES SHOULD USE THIS FILE:
-This partial template contains the unified navigation sidebar links, included by
-templates/base.html in both the desktop fixed sidebar (<aside class="bl-sidebar">)
-  and mobile drawer (<div class="offcanvas offcanvas-start">).
+﻿{# templates/includes/_sidebar_content.html — role-based sidebar navigation partial #}
 
-    ROLE-BASED VISIBILITY (Exact role values from accounts/models.py: User.ROLE_*):
-    - request.user.role == 'admin':
-    Sees: Dashboard, Products, Plans, Subscriptions, Invoices, Payments (TODO),
-    Reports (TODO), Intelligence (TODO), Staff.
-    - request.user.role == 'staff':
-    Sees: Dashboard, Customers (TODO), Subscriptions, Invoices, Payments (TODO).
-    - request.user.role == 'customer':
-    Sees: My Dashboard, My Subscriptions, My Invoices.
-    - Anonymous (not authenticated):
-    Sees: Home, Plans, Products.
-
-    ACTIVE LINK HIGHLIGHTING:
-    Checked against request.resolver_match.url_name or request.resolver_match.app_name.
-    Matches receive class active which applies var(--bl-bg-sidebar-active).
-    {% endcomment %}
-
-    {# Brand Header (desktop sidebar only — offcanvas has its own header) #}
+    {# Brand Header (desktop sidebar only â€” offcanvas has its own header) #}
     <div class="px-3 py-3 d-none d-lg-block">
       <a class="text-white text-decoration-none d-flex align-items-center" href="{% url 'accounts:home' %}">
         <span class="badge bg-primary-brand me-2 px-2 py-1">BL</span>
@@ -219,6 +197,39 @@ templates/base.html in both the desktop fixed sidebar (<aside class="bl-sidebar"
             Simulator
           </a>
         </li>
+        <li class="bl-sidebar-section">Tools</li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'activity_timeline' %}active{% endif %}"
+            href="{% url 'portal:activity_timeline' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Activity Log
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"
+            href="{% url 'portal:reports' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M3 3v18h18" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="7" y="10" width="3" height="8"/>
+              <rect x="13" y="6" width="3" height="12"/>
+            </svg>
+            Reports
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}"
+            href="{% url 'portal:notifications' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            Notifications{% if unread_notifications_count > 0 %} <span class="badge bg-danger ms-1">{{ unread_notifications_count }}</span>{% endif %}
+          </a>
+        </li>
+
 
         <li class="bl-sidebar-section">Administration</li>
         <li class="nav-item">
@@ -243,7 +254,7 @@ templates/base.html in both the desktop fixed sidebar (<aside class="bl-sidebar"
                 d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
                 stroke-linecap="round" stroke-linejoin="round" />
             </svg>
-            Django Admin ↗
+            Django Admin â†—
           </a>
         </li>
 
@@ -363,6 +374,39 @@ templates/base.html in both the desktop fixed sidebar (<aside class="bl-sidebar"
             Simulator
           </a>
         </li>
+        <li class="bl-sidebar-section">Tools</li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'activity_timeline' %}active{% endif %}"
+            href="{% url 'portal:activity_timeline' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Activity Log
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"
+            href="{% url 'portal:reports' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M3 3v18h18" stroke-linecap="round" stroke-linejoin="round"/>
+              <rect x="7" y="10" width="3" height="8"/>
+              <rect x="13" y="6" width="3" height="12"/>
+            </svg>
+            Reports
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'notifications' %}active{% endif %}"
+            href="{% url 'portal:notifications' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            Notifications{% if unread_notifications_count > 0 %} <span class="badge bg-danger ms-1">{{ unread_notifications_count }}</span>{% endif %}
+          </a>
+        </li>
+
 
         {% elif request.user.role == 'customer' %}
         <li class="bl-sidebar-section">My Account</li>
