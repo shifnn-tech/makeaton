@@ -28,7 +28,7 @@ Every page in your app should inherit from `base.html`:
   {% include "includes/form_errors.html" %}
 
   <div class="card shadow-sm border-0">
-    <div class="table-responsive">
+    <div class="table-responsive"> 
       <table class="table table-hover align-middle mb-0">
         <thead class="table-light">
           <tr>
