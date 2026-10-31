@@ -1,0 +1,55 @@
+{% comment %}
+  templates/includes/empty_state.html
+  =====================================
+  HOW TO USE:
+    include 'includes/empty_state.html' with icon="inbox" message="No invoices found."
+    include 'includes/empty_state.html' with icon="search" message="No results match your search." button_text="Clear Filters" button_url="/billing/"
+  
+  Renders a centered empty-state placeholder with:
+    - icon:        (optional) One of: "inbox", "search", "file", "users", "chart". Defaults to "inbox".
+    - message:     (required) The message to display.
+    - description: (optional) A smaller sub-message below the main one.
+    - button_text: (optional) If provided, renders a primary action button.
+    - button_url:  (optional) URL for the action button. Defaults to "#".
+  
+  Requires: brightloop.css loaded (uses .bl-empty-state class).
+{% endcomment %}
+
+<div class="bl-empty-state text-center py-5 my-4">
+  <div class="mb-3">
+    {% if icon == "search" %}
+      <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" class="text-muted">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35" stroke-linecap="round"/>
+      </svg>
+    {% elif icon == "file" %}
+      <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" class="text-muted">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14,2 14,8 20,8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    {% elif icon == "users" %}
+      <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" class="text-muted">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    {% elif icon == "chart" %}
+      <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" class="text-muted">
+        <path d="M18 20V10M12 20V4M6 20v-6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    {% else %}
+      {# Default: inbox icon #}
+      <svg width="64" height="64" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" class="text-muted">
+        <polyline points="22,12 16,12 14,15 10,15 8,12 2,12" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    {% endif %}
+  </div>
+
+  <h5 class="text-muted mb-2">{{ message|default:"Nothing here yet." }}</h5>
+
+  {% if description %}
+    <p class="text-muted small mb-3">{{ description }}</p>
+  {% endif %}
+
+  {% if button_text %}
+    <a href="{{ button_url|default:'#' }}" class="btn btn-primary btn-sm mt-2">
+      {{ button_text }}
+    </a>
+  {% endif %}
+</div>

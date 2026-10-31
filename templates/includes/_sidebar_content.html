@@ -1,0 +1,434 @@
+{% comment %}
+templates/includes/_sidebar_content.html
+==========================================
+HOW TEAMMATES SHOULD USE THIS FILE:
+This partial template contains the unified navigation sidebar links, included by
+templates/base.html in both the desktop fixed sidebar (<aside class="bl-sidebar">)
+  and mobile drawer (<div class="offcanvas offcanvas-start">).
+
+    ROLE-BASED VISIBILITY (Exact role values from accounts/models.py: User.ROLE_*):
+    - request.user.role == 'admin':
+    Sees: Dashboard, Products, Plans, Subscriptions, Invoices, Payments (TODO),
+    Reports (TODO), Intelligence (TODO), Staff.
+    - request.user.role == 'staff':
+    Sees: Dashboard, Customers (TODO), Subscriptions, Invoices, Payments (TODO).
+    - request.user.role == 'customer':
+    Sees: My Dashboard, My Subscriptions, My Invoices.
+    - Anonymous (not authenticated):
+    Sees: Home, Plans, Products.
+
+    ACTIVE LINK HIGHLIGHTING:
+    Checked against request.resolver_match.url_name or request.resolver_match.app_name.
+    Matches receive class active which applies var(--bl-bg-sidebar-active).
+    {% endcomment %}
+
+    {# Brand Header (desktop sidebar only — offcanvas has its own header) #}
+    <div class="px-3 py-3 d-none d-lg-block">
+      <a class="text-white text-decoration-none d-flex align-items-center" href="{% url 'accounts:home' %}">
+        <span class="badge bg-primary-brand me-2 px-2 py-1">BL</span>
+        <span class="fw-bold fs-5">BrightLoop</span>
+      </a>
+    </div>
+
+    <hr class="border-secondary mx-3 mt-0 d-none d-lg-block">
+
+    {# Navigation Links #}
+    <nav class="flex-grow-1 px-3 py-2">
+      <ul class="nav flex-column gap-1">
+
+        {% if not request.user.is_authenticated %}
+        {# Anonymous Visitor Navigation: Home, Plans, Products #}
+        <li class="bl-sidebar-section">Explore</li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+            href="{% url 'accounts:home' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Home
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'plan_list' %}active{% endif %}"
+            href="{% url 'catalog:plan_list' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            Plans
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}"
+            href="{% url 'catalog:product_list' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Products
+          </a>
+        </li>
+
+        {% elif request.user.role == 'admin' or request.user.is_superuser %}
+        <li class="bl-sidebar-section">Overview</li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}"
+            href="{% url 'portal:admin_dashboard' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M18 20V10M12 20V4M6 20v-6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Dashboard
+          </a>
+        </li>
+
+        <li class="bl-sidebar-section">Catalog</li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'product_list' %}active{% endif %}"
+            href="{% url 'catalog:product_list' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Products
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'plan_list' %}active{% endif %}"
+            href="{% url 'catalog:plan_list' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            Plans
+          </a>
+        </li>
+
+        <li class="bl-sidebar-section">Billing & Subscriptions</li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'customer_list' or request.resolver_match.url_name == 'customer_detail' %}active{% endif %}"
+            href="{% url 'portal:customer_list' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Customers
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'subscriptions' %}active{% endif %}"
+            href="{% url 'subscriptions:list' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke-linecap="round" />
+              <polyline points="22 4 12 14.01 9 11.01" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Subscriptions
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'billing' %}active{% endif %}"
+            href="{% url 'billing:list' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-linecap="round"
+                stroke-linejoin="round" />
+              <polyline points="14,2 14,8 20,8" stroke-linecap="round" stroke-linejoin="round" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+            Invoices
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}"
+            href="{% url 'portal:calendar' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Billing Calendar
+          </a>
+        </li>
+
+        {# TODO: Payments module (e.g. billing:payment_list) - URL does not exist yet #}
+        {# TODO: Reports module (e.g. dashboard:report_list) - URL does not exist yet #}
+
+        <li class="bl-sidebar-section">Intelligence</li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'intelligence' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+            href="{% url 'intelligence:dashboard' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M3 3v18h18" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M18 9l-5 5-4-4-3 3" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Revenue Metrics
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'intelligence' and request.resolver_match.url_name == 'forecast' %}active{% endif %}"
+            href="{% url 'intelligence:forecast' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Forecast &amp; Health
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'intelligence' and request.resolver_match.url_name == 'leaks' %}active{% endif %}"
+            href="{% url 'intelligence:leaks' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M12 8v4" stroke-linecap="round" />
+              <path d="M12 16h.01" stroke-linecap="round" />
+            </svg>
+            Leak Detector
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'intelligence' and request.resolver_match.url_name == 'simulator' %}active{% endif %}"
+            href="{% url 'intelligence:simulator' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <line x1="4" y1="21" x2="4" y2="14" stroke-linecap="round" />
+              <line x1="4" y1="10" x2="4" y2="3" stroke-linecap="round" />
+              <line x1="12" y1="21" x2="12" y2="12" stroke-linecap="round" />
+              <line x1="12" y1="8" x2="12" y2="3" stroke-linecap="round" />
+              <line x1="20" y1="21" x2="20" y2="16" stroke-linecap="round" />
+              <line x1="20" y1="12" x2="20" y2="3" stroke-linecap="round" />
+              <line x1="1" y1="14" x2="7" y2="14" stroke-linecap="round" />
+              <line x1="9" y1="8" x2="15" y2="8" stroke-linecap="round" />
+              <line x1="17" y1="16" x2="23" y2="16" stroke-linecap="round" />
+            </svg>
+            Simulator
+          </a>
+        </li>
+
+        <li class="bl-sidebar-section">Administration</li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'staff_create' %}active{% endif %}"
+            href="{% url 'accounts:staff_create' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="8.5" cy="7" r="4" />
+              <line x1="20" y1="8" x2="20" y2="14" stroke-linecap="round" />
+              <line x1="23" y1="11" x2="17" y2="11" stroke-linecap="round" />
+            </svg>
+            Staff
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link" href="/admin/" target="_blank">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+                stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Django Admin ↗
+          </a>
+        </li>
+
+        {% elif request.user.role == 'staff' %}
+        <li class="bl-sidebar-section">Overview</li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}"
+            href="{% url 'portal:staff_dashboard' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M18 20V10M12 20V4M6 20v-6" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Dashboard
+          </a>
+        </li>
+
+        <li class="bl-sidebar-section">Operations</li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'customer_list' or request.resolver_match.url_name == 'customer_detail' %}active{% endif %}"
+            href="{% url 'portal:customer_list' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Customers
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'subscriptions' %}active{% endif %}"
+            href="{% url 'subscriptions:list' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke-linecap="round" />
+              <polyline points="22 4 12 14.01 9 11.01" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Subscriptions
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'billing' %}active{% endif %}"
+            href="{% url 'billing:list' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-linecap="round"
+                stroke-linejoin="round" />
+              <polyline points="14,2 14,8 20,8" stroke-linecap="round" stroke-linejoin="round" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+            Invoices
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}"
+            href="{% url 'portal:calendar' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Billing Calendar
+          </a>
+        </li>
+
+        {# TODO: Payments module (e.g. billing:payment_list) - URL does not exist yet #}
+
+        <li class="bl-sidebar-section">Intelligence</li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'intelligence' and request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+            href="{% url 'intelligence:dashboard' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M3 3v18h18" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M18 9l-5 5-4-4-3 3" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Revenue Metrics
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'intelligence' and request.resolver_match.url_name == 'forecast' %}active{% endif %}"
+            href="{% url 'intelligence:forecast' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            Forecast &amp; Health
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'intelligence' and request.resolver_match.url_name == 'leaks' %}active{% endif %}"
+            href="{% url 'intelligence:leaks' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M12 8v4" stroke-linecap="round" />
+              <path d="M12 16h.01" stroke-linecap="round" />
+            </svg>
+            Leak Detector
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'intelligence' and request.resolver_match.url_name == 'simulator' %}active{% endif %}"
+            href="{% url 'intelligence:simulator' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <line x1="4" y1="21" x2="4" y2="14" stroke-linecap="round" />
+              <line x1="4" y1="10" x2="4" y2="3" stroke-linecap="round" />
+              <line x1="12" y1="21" x2="12" y2="12" stroke-linecap="round" />
+              <line x1="12" y1="8" x2="12" y2="3" stroke-linecap="round" />
+              <line x1="20" y1="21" x2="20" y2="16" stroke-linecap="round" />
+              <line x1="20" y1="12" x2="20" y2="3" stroke-linecap="round" />
+              <line x1="1" y1="14" x2="7" y2="14" stroke-linecap="round" />
+              <line x1="9" y1="8" x2="15" y2="8" stroke-linecap="round" />
+              <line x1="17" y1="16" x2="23" y2="16" stroke-linecap="round" />
+            </svg>
+            Simulator
+          </a>
+        </li>
+
+        {% elif request.user.role == 'customer' %}
+        <li class="bl-sidebar-section">My Account</li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'customer_dashboard' %}active{% endif %}"
+            href="{% url 'portal:customer_dashboard' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            My Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'subscriptions' %}active{% endif %}"
+            href="{% url 'subscriptions:list' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke-linecap="round" />
+              <polyline points="22 4 12 14.01 9 11.01" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            My Subscriptions
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.app_name == 'billing' %}active{% endif %}"
+            href="{% url 'billing:list' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke-linecap="round"
+                stroke-linejoin="round" />
+              <polyline points="14,2 14,8 20,8" stroke-linecap="round" stroke-linejoin="round" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+            My Invoices
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}"
+            href="{% url 'portal:calendar' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+              <line x1="16" y1="2" x2="16" y2="6"/>
+              <line x1="8" y1="2" x2="8" y2="6"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            Renewal Calendar
+          </a>
+        </li>
+
+        <li class="bl-sidebar-section">Explore</li>
+        <li class="nav-item">
+          <a class="bl-sidebar-link {% if request.resolver_match.url_name == 'plan_list' %}active{% endif %}"
+            href="{% url 'catalog:plan_list' %}">
+            <svg class="bl-sidebar-icon" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+              viewBox="0 0 24 24">
+              <rect x="3" y="3" width="7" height="7" rx="1" />
+              <rect x="14" y="3" width="7" height="7" rx="1" />
+              <rect x="3" y="14" width="7" height="7" rx="1" />
+              <rect x="14" y="14" width="7" height="7" rx="1" />
+            </svg>
+            Explore Plans
+          </a>
+        </li>
+        {% endif %}
+
+      </ul>
+    </nav>

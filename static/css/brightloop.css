@@ -1,0 +1,569 @@
+/*
+ * ============================================================================
+ * BrightLoop Design System — brightloop.css
+ * ============================================================================
+ *
+ * HOW TEAMMATES SHOULD USE THIS FILE:
+ * -----------------------------------
+ * 1. This file is loaded automatically in `templates/base.html` after
+ *    `bootstrap.min.css` and `style.css`.
+ *
+ * 2. ALL styles in this file (buttons, cards, tables, badges, forms) are built
+ *    EXCLUSIVELY using the CSS custom properties (design tokens) declared in
+ *    the :root block below.
+ *
+ * 3. When writing custom component styles in your own pages, ALWAYS reference
+ *    these design tokens via `var(--bl-*)` rather than hardcoding hex colors,
+ *    pixel sizes, or border radii.
+ *
+ * 4. Status Badges:
+ *    Use these exact class names for status indicators across models:
+ *      <span class="badge badge-draft">Draft</span>
+ *      <span class="badge badge-active">Active</span>
+ *      <span class="badge badge-paid">Paid</span>
+ *      <span class="badge badge-overdue">Overdue</span>
+ *      <span class="badge badge-closed">Closed</span>
+ *      <span class="badge badge-pending">Pending</span>
+ *
+ * 5. Mobile Tables:
+ *    Always wrap <table> elements in <div class="table-responsive"> or
+ *    <div class="bl-table-responsive"> to prevent horizontal viewport clipping
+ *    on phone screens.
+ * ============================================================================
+ */
+
+/* =========================================================================
+   1. DESIGN TOKENS (CSS VARIABLES IN :root)
+   ========================================================================= */
+
+:root {
+    /* --- Brand Colours --- */
+    --bl-brand-primary: #2563eb;          /* Royal Blue */
+    --bl-brand-primary-hover: #1d4ed8;    /* Darker Blue */
+    --bl-brand-primary-light: #eff6ff;    /* Tint Blue */
+    --bl-brand-secondary: #475569;        /* Slate Gray */
+    --bl-brand-secondary-hover: #334155;  /* Deep Slate */
+    --bl-brand-accent: #0ea5e9;           /* Sky Blue */
+
+    /* --- Status & Feedback Colours --- */
+    --bl-color-active: #10b981;           /* Emerald Green */
+    --bl-color-paid: #2563eb;             /* Royal Blue */
+    --bl-color-draft: #94a3b8;            /* Slate Muted */
+    --bl-color-overdue: #ef4444;          /* Crimson Red */
+    --bl-color-closed: #334155;           /* Charcoal Dark */
+    --bl-color-warning: #f59e0b;          /* Amber */
+    --bl-color-info: #0ea5e9;             /* Cyan Sky */
+
+    /* --- Backgrounds --- */
+    --bl-bg-body: #f8fafc;
+    --bl-bg-card: #ffffff;
+    --bl-bg-topbar: #ffffff;
+    --bl-bg-sidebar: #1e293b;
+    --bl-bg-sidebar-hover: #334155;
+    --bl-bg-sidebar-active: #2563eb;
+    --bl-bg-table-head: #eff6ff;
+    --bl-bg-table-stripe: #f8fafc;
+    --bl-bg-table-hover: #eff6ff;
+    --bl-bg-input: #ffffff;
+    --bl-bg-muted: #f1f5f9;
+
+    /* --- Text Colours --- */
+    --bl-text-primary: #1e293b;
+    --bl-text-secondary: #475569;
+    --bl-text-muted: #94a3b8;
+    --bl-text-inverse: #ffffff;
+    --bl-text-sidebar: #cbd5e1;
+    --bl-text-sidebar-muted: #64748b;
+
+    /* --- Borders --- */
+    --bl-border-color: #e2e8f0;
+    --bl-border-focus: #2563eb;
+    --bl-border-sidebar: #334155;
+    --bl-border-width: 1px;
+
+    /* --- Border Radii --- */
+    --bl-radius-xs: 0.25rem;   /* 4px */
+    --bl-radius-sm: 0.375rem;  /* 6px */
+    --bl-radius-md: 0.5rem;    /* 8px */
+    --bl-radius-lg: 0.75rem;   /* 12px */
+    --bl-radius-xl: 1rem;      /* 16px */
+    --bl-radius-pill: 9999px;
+
+    /* --- Spacing Scale --- */
+    --bl-spacing-xs: 0.25rem;  /* 4px */
+    --bl-spacing-sm: 0.5rem;   /* 8px */
+    --bl-spacing-md: 1rem;     /* 16px */
+    --bl-spacing-lg: 1.5rem;   /* 24px */
+    --bl-spacing-xl: 2.5rem;   /* 40px */
+
+    /* --- Font Stack & Typography --- */
+    --bl-font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --bl-font-size-xs: 0.75rem;     /* 12px */
+    --bl-font-size-sm: 0.8125rem;   /* 13px */
+    --bl-font-size-base: 0.9375rem; /* 15px */
+    --bl-font-size-lg: 1.125rem;    /* 18px */
+    --bl-font-size-xl: 1.25rem;     /* 20px */
+    --bl-font-size-2xl: 1.75rem;    /* 28px */
+    --bl-font-weight-normal: 400;
+    --bl-font-weight-medium: 500;
+    --bl-font-weight-semibold: 600;
+    --bl-font-weight-bold: 700;
+
+    /* --- Layout Dimensions --- */
+    --bl-sidebar-width: 260px;
+    --bl-topbar-height: 56px;
+
+    /* --- Compatibility Aliases for style.css --- */
+    --primary-color: var(--bl-brand-primary);
+    --primary-hover: var(--bl-brand-primary-hover);
+    --primary-light: var(--bl-brand-primary-light);
+    --secondary-color: var(--bl-brand-secondary);
+    --accent-color: var(--bl-brand-accent);
+    --success-color: var(--bl-color-active);
+    --warning-color: var(--bl-color-warning);
+    --danger-color: var(--bl-color-overdue);
+    --body-bg: var(--bl-bg-body);
+    --card-bg: var(--bl-bg-card);
+    --border-color: var(--bl-border-color);
+}
+
+/* =========================================================================
+   2. GLOBAL BODY & RESET (using only tokens)
+   ========================================================================= */
+
+body {
+    background-color: var(--bl-bg-body);
+    color: var(--bl-text-primary);
+    font-family: var(--bl-font-family);
+    font-size: var(--bl-font-size-base);
+    min-height: 100vh;
+}
+
+/* =========================================================================
+   3. SIDEBAR & TOPBAR LAYOUT
+   ========================================================================= */
+
+.bl-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--bl-sidebar-width);
+    height: 100vh;
+    z-index: 1040;
+    background-color: var(--bl-bg-sidebar);
+    color: var(--bl-text-sidebar);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.bl-sidebar-link {
+    display: flex;
+    align-items: center;
+    padding: var(--bl-spacing-sm) var(--bl-spacing-md);
+    color: var(--bl-text-sidebar);
+    text-decoration: none;
+    border-radius: var(--bl-radius-md);
+    font-size: var(--bl-font-size-sm);
+    font-weight: var(--bl-font-weight-medium);
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.bl-sidebar-link:hover,
+.bl-sidebar-link:focus {
+    background-color: var(--bl-bg-sidebar-hover);
+    color: var(--bl-text-inverse);
+    text-decoration: none;
+}
+
+.bl-sidebar-link.active {
+    background-color: var(--bl-bg-sidebar-active);
+    color: var(--bl-text-inverse);
+    font-weight: var(--bl-font-weight-semibold);
+}
+
+.bl-sidebar-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    margin-right: var(--bl-spacing-sm);
+    flex-shrink: 0;
+}
+
+.bl-sidebar-section {
+    font-size: var(--bl-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--bl-text-sidebar-muted);
+    padding: var(--bl-spacing-lg) var(--bl-spacing-md) var(--bl-spacing-xs);
+    font-weight: var(--bl-font-weight-semibold);
+    list-style: none;
+}
+
+.bl-topbar {
+    position: fixed;
+    top: 0;
+    left: var(--bl-sidebar-width);
+    right: 0;
+    height: var(--bl-topbar-height);
+    background-color: var(--bl-bg-topbar);
+    border-bottom: var(--bl-border-width) solid var(--bl-border-color);
+    z-index: 1030;
+}
+
+.bl-main-content {
+    margin-left: var(--bl-sidebar-width);
+    padding-top: calc(var(--bl-topbar-height) + var(--bl-spacing-md));
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.bl-main-content main {
+    flex: 1;
+}
+
+/* =========================================================================
+   4. BUTTONS (styled using only tokens)
+   ========================================================================= */
+
+.btn {
+    font-family: var(--bl-font-family);
+    font-size: var(--bl-font-size-sm);
+    font-weight: var(--bl-font-weight-medium);
+    border-radius: var(--bl-radius-md);
+    padding: var(--bl-spacing-sm) var(--bl-spacing-md);
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.btn-primary,
+.btn-bl-primary {
+    background-color: var(--bl-brand-primary);
+    border-color: var(--bl-brand-primary);
+    color: var(--bl-text-inverse);
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-bl-primary:hover,
+.btn-bl-primary:focus {
+    background-color: var(--bl-brand-primary-hover);
+    border-color: var(--bl-brand-primary-hover);
+    color: var(--bl-text-inverse);
+}
+
+.btn-secondary {
+    background-color: var(--bl-brand-secondary);
+    border-color: var(--bl-brand-secondary);
+    color: var(--bl-text-inverse);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+    background-color: var(--bl-brand-secondary-hover);
+    border-color: var(--bl-brand-secondary-hover);
+    color: var(--bl-text-inverse);
+}
+
+.btn-outline-primary,
+.btn-bl-outline {
+    background-color: transparent;
+    border: var(--bl-border-width) solid var(--bl-brand-primary);
+    color: var(--bl-brand-primary);
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-bl-outline:hover,
+.btn-bl-outline:focus {
+    background-color: var(--bl-brand-primary);
+    border-color: var(--bl-brand-primary);
+    color: var(--bl-text-inverse);
+}
+
+.btn-danger,
+.btn-bl-danger {
+    background-color: var(--bl-color-overdue);
+    border-color: var(--bl-color-overdue);
+    color: var(--bl-text-inverse);
+}
+
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-bl-danger:hover,
+.btn-bl-danger:focus {
+    background-color: #dc2626;
+    border-color: #dc2626;
+    color: var(--bl-text-inverse);
+}
+
+.btn-sm {
+    padding: var(--bl-spacing-xs) var(--bl-spacing-sm);
+    font-size: var(--bl-font-size-xs);
+    border-radius: var(--bl-radius-sm);
+}
+
+.btn-lg {
+    padding: var(--bl-spacing-md) var(--bl-spacing-lg);
+    font-size: var(--bl-font-size-lg);
+    border-radius: var(--bl-radius-lg);
+}
+
+/* =========================================================================
+   5. CARDS (styled using only tokens)
+   ========================================================================= */
+
+.card,
+.bl-card {
+    background-color: var(--bl-bg-card);
+    border: var(--bl-border-width) solid var(--bl-border-color);
+    border-radius: var(--bl-radius-lg);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.card-header,
+.bl-card-header {
+    background-color: var(--bl-bg-card);
+    border-bottom: var(--bl-border-width) solid var(--bl-border-color);
+    padding: var(--bl-spacing-md) var(--bl-spacing-lg);
+    font-weight: var(--bl-font-weight-semibold);
+    color: var(--bl-text-primary);
+}
+
+.card-body {
+    padding: var(--bl-spacing-lg);
+}
+
+.card-footer {
+    background-color: var(--bl-bg-muted);
+    border-top: var(--bl-border-width) solid var(--bl-border-color);
+    padding: var(--bl-spacing-sm) var(--bl-spacing-lg);
+}
+
+/* Stat Cards */
+.stat-card {
+    border-left: 4px solid var(--bl-brand-primary);
+}
+.stat-card-success {
+    border-left: 4px solid var(--bl-color-active);
+}
+.stat-card-warning {
+    border-left: 4px solid var(--bl-color-warning);
+}
+.stat-card-danger {
+    border-left: 4px solid var(--bl-color-overdue);
+}
+
+/* =========================================================================
+   6. TABLES (styled using only tokens)
+   ========================================================================= */
+
+.table-responsive,
+.bl-table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+}
+
+.table,
+.bl-table {
+    width: 100%;
+    margin-bottom: 0;
+    color: var(--bl-text-primary);
+    vertical-align: middle;
+    border-color: var(--bl-border-color);
+    font-size: var(--bl-font-size-sm);
+}
+
+.table thead th,
+.bl-table thead th {
+    background-color: var(--bl-bg-table-head);
+    color: var(--bl-text-secondary);
+    font-weight: var(--bl-font-weight-semibold);
+    font-size: var(--bl-font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: var(--bl-spacing-sm) var(--bl-spacing-md);
+    border-bottom: 2px solid var(--bl-border-color);
+    white-space: nowrap;
+}
+
+.table tbody td,
+.bl-table tbody td {
+    padding: var(--bl-spacing-sm) var(--bl-spacing-md);
+    border-bottom: var(--bl-border-width) solid var(--bl-border-color);
+    color: var(--bl-text-primary);
+}
+
+.table-hover tbody tr:hover,
+.bl-table tbody tr:hover {
+    background-color: var(--bl-bg-table-hover);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--bl-bg-table-stripe);
+}
+
+/* =========================================================================
+   7. BADGES (status colours for draft, active, paid, overdue, closed)
+   ========================================================================= */
+
+.badge {
+    font-family: var(--bl-font-family);
+    font-size: var(--bl-font-size-xs);
+    font-weight: var(--bl-font-weight-semibold);
+    padding: var(--bl-spacing-xs) var(--bl-spacing-sm);
+    border-radius: var(--bl-radius-pill);
+    letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Status: Draft */
+.badge-draft {
+    background-color: var(--bl-color-draft) !important;
+    color: var(--bl-text-inverse) !important;
+}
+
+/* Status: Active */
+.badge-active {
+    background-color: var(--bl-color-active) !important;
+    color: var(--bl-text-inverse) !important;
+}
+
+/* Status: Paid */
+.badge-paid {
+    background-color: var(--bl-color-paid) !important;
+    color: var(--bl-text-inverse) !important;
+}
+
+/* Status: Overdue */
+.badge-overdue {
+    background-color: var(--bl-color-overdue) !important;
+    color: var(--bl-text-inverse) !important;
+}
+
+/* Status: Closed */
+.badge-closed {
+    background-color: var(--bl-color-closed) !important;
+    color: var(--bl-text-inverse) !important;
+}
+
+/* Status: Pending & Cancelled helpers */
+.badge-pending {
+    background-color: var(--bl-color-warning) !important;
+    color: var(--bl-text-inverse) !important;
+}
+
+.badge-cancelled {
+    background-color: var(--bl-brand-secondary) !important;
+    color: var(--bl-text-inverse) !important;
+}
+
+/* Role badges */
+.badge-role-admin {
+    background-color: var(--bl-color-overdue) !important;
+    color: var(--bl-text-inverse) !important;
+}
+
+.badge-role-staff {
+    background-color: #7c3aed !important;
+    color: var(--bl-text-inverse) !important;
+}
+
+.badge-role-customer {
+    background-color: var(--bl-brand-accent) !important;
+    color: var(--bl-text-inverse) !important;
+}
+
+/* =========================================================================
+   8. FORMS (styled using only tokens)
+   ========================================================================= */
+
+.form-label,
+.bl-form-label {
+    font-weight: var(--bl-font-weight-medium);
+    font-size: var(--bl-font-size-sm);
+    color: var(--bl-text-primary);
+    margin-bottom: var(--bl-spacing-xs);
+    display: block;
+}
+
+.form-control,
+.form-select,
+.bl-form-control {
+    background-color: var(--bl-bg-input);
+    color: var(--bl-text-primary);
+    border: var(--bl-border-width) solid var(--bl-border-color);
+    border-radius: var(--bl-radius-md);
+    padding: var(--bl-spacing-sm) var(--bl-spacing-md);
+    font-size: var(--bl-font-size-base);
+    font-family: var(--bl-font-family);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form-control:focus,
+.form-select:focus,
+.bl-form-control:focus {
+    border-color: var(--bl-border-focus);
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.2);
+    outline: none;
+    color: var(--bl-text-primary);
+}
+
+.form-text {
+    font-size: var(--bl-font-size-xs);
+    color: var(--bl-text-muted);
+    margin-top: var(--bl-spacing-xs);
+}
+
+.bl-form-group {
+    margin-bottom: var(--bl-spacing-md);
+}
+
+/* =========================================================================
+   9. EMPTY STATE COMPONENT
+   ========================================================================= */
+
+.bl-empty-state {
+    padding: var(--bl-spacing-xl) var(--bl-spacing-lg);
+    text-align: center;
+    color: var(--bl-text-muted);
+}
+
+.bl-empty-state svg {
+    margin-bottom: var(--bl-spacing-sm);
+    color: var(--bl-text-muted);
+}
+
+/* =========================================================================
+   10. RESPONSIVE MEDIA QUERIES (Phone Width < 992px)
+   ========================================================================= */
+
+@media (max-width: 991.98px) {
+    /* Hide desktop sidebar */
+    .bl-sidebar {
+        display: none !important;
+    }
+
+    /* Reset topbar full width */
+    .bl-topbar {
+        left: 0 !important;
+        width: 100% !important;
+    }
+
+    /* Reset main content margin */
+    .bl-main-content {
+        margin-left: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    /* Ensure tables never break mobile viewport */
+    .table-responsive,
+    .bl-table-responsive {
+        border: none;
+    }
+}

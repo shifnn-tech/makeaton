@@ -1,5 +1,15 @@
-{# templates/includes/form_errors.html #}
-{# Purpose: Reusable Bootstrap 5 alert block to display form-level or field-level validation errors #}
+{% comment %}
+  templates/includes/form_errors.html
+  ====================================
+  HOW TO USE:
+    include 'includes/form_errors.html' with form=my_form
+  
+  Displays both non-field errors (e.g. "Passwords don't match") and per-field 
+  errors in a single Bootstrap 5 danger alert. Pass any Django Form instance
+  via the 'form' variable.
+  
+  Requires: A 'form' context variable (any Django Form or ModelForm instance).
+{% endcomment %}
 
 {% if form.errors %}
   <div class="alert alert-danger alert-dismissible fade show shadow-sm" role="alert">
