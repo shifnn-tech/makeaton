@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% load static humanize %}
+
+{% block title %}Revenue Leak Detector - BrightLoop{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/intelligence.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- ========================================================================
+       MODULE HEADER & NAVIGATION TABS
+       ======================================================================== -->
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="fw-bold mb-1">Revenue Intelligence</h2>
+      <p class="text-muted mb-0">Automated audit of unbilled cycles, failed renewals, overdue receivables, and accounting integrity</p>
+    </div>
+    <div>
+      <span class="badge bg-primary-brand px-3 py-2 text-uppercase">Admin / Staff Access Only</span>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <ul class="nav intelligence-nav mb-4">
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'intelligence:dashboard' %}">
+        Revenue Dashboard
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'intelligence:forecast' %}">
+        Forecast & Churn Risk
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link active" href="{% url 'intelligence:leaks' %}">
+        <svg class="bi me-1" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+          <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+        </svg>
+        Leak Detector
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="{% url 'intelligence:simulator' %}">
+        What-If Simulator
+      </a>
+    </li>
+  </ul>
+
+  <!-- ========================================================================
+       SUMMARY CARD: TOTAL REVENUE AT RISK
+       ======================================================================== -->
+  <div class="card shadow-sm border-0 mb-4 bg-light">
+    <div class="card-body p-4">
+      <div class="row align-items-center g-3">
+        <div class="col-lg-6">
+          <span class="badge bg-danger text-uppercase px-2 py-1 mb-2">Automated Audit Summary</span>
+          <h1 class="display-5 fw-bold text-danger mb-1">
+            ${{ leak_data.total_revenue_at_risk|floatformat:2|intcomma }}
+          </h1>
+          <p class="text-muted fs-6 mb-0">
+            Total Estimated Revenue at Risk across <strong>{{ leak_data.total_leak_count|intcomma }}</strong> detected leak incidents.
+          </p>
+        </div>
+        <div class="col-lg-6">
+          <div class="d-flex flex-wrap gap-2 justify-content-lg-end">
+            {% for check in leak_data.checks %}
+              <a href="#{{ check.id }}" class="btn btn-sm {% if check.count > 0 %}btn-outline-danger{% else %}btn-outline-success{% endif %} bg-white shadow-sm">
+                <span class="fw-bold">{{ check.badge }}:</span>
+                <span class="badge {% if check.count > 0 %}bg-danger{% else %}bg-success{% endif %} ms-1">
+                  {{ check.count|intcomma }}
+                </span>
+                <span class="text-muted small ms-1">(${{ check.total_risk|floatformat:2|intcomma }})</span>
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Methodology / Assumptions Callout (Plain text, no LaTeX) -->
+  <div class="assumptions-box mb-4">
+    <div class="d-flex align-items-center">
+      <svg class="bi me-2 flex-shrink-0 text-primary" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+        <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533L8.93 6.588zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0z"/>
+      </svg>
+      <div>
+        <strong>Detection Methodology & Financial Risk Rules:</strong>
+        Each check monitors a critical invariant in recurring billing operations. Risk amounts represent uncollected subscription revenue (plan price), overdue invoice receivables (balance due), unapplied payments, or mathematical ledger discrepancies between line items and invoice totals.
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       SECTION PER CHECK (ALL 5 CHECKS)
+       ======================================================================== -->
+  {% for check in leak_data.checks %}
+    <div class="card shadow-sm border-0 mb-4 {% if check.count > 0 %}leak-card-alert{% else %}leak-card-clean{% endif %}" id="{{ check.id }}">
+      <div class="card-header bg-white py-3 d-flex flex-wrap justify-content-between align-items-center">
+        <div>
+          <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="badge {% if check.count > 0 %}bg-danger{% else %}bg-success{% endif %} text-uppercase">
+              Check {{ forloop.counter }}: {{ check.badge }}
+            </span>
+            <h5 class="fw-bold mb-0">{{ check.title }}</h5>
+          </div>
+          <p class="text-muted small mb-0">{{ check.description }}</p>
+        </div>
+        <div class="text-md-end mt-2 mt-md-0">
+          <div class="fs-5 fw-bold {% if check.count > 0 %}text-danger{% else %}text-success{% endif %}">
+            ${{ check.total_risk|floatformat:2|intcomma }}
+          </div>
+          <small class="text-muted">
+            {% if check.count > 0 %}
+              {{ check.count|intcomma }} record{{ check.count|pluralize }} flagged
+            {% else %}
+              0 records (Compliant)
+            {% endif %}
+          </small>
+        </div>
+      </div>
+
+      <div class="card-body p-0">
+        {% if check.count > 0 %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 18%;">Reference</th>
+                  <th style="width: 22%;">Customer</th>
+                  <th style="width: 15%;">Key Date</th>
+                  <th style="width: 30%;">Discrepancy Reason</th>
+                  <th style="width: 15%;" class="text-end">Amount at Risk</th>
+                  <th style="width: 10%;" class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for record in check.sample_records %}
+                  <tr>
+                    <td>
+                      <span class="fw-bold font-monospace">{{ record.reference }}</span>
+                    </td>
+                    <td>
+                      <div class="text-truncate" style="max-width: 220px;" title="{{ record.customer }}">
+                        {{ record.customer }}
+                      </div>
+                    </td>
+                    <td class="small">
+                      <span class="text-muted d-block">{{ record.date_label }}</span>
+                      <strong>{{ record.date }}</strong>
+                    </td>
+                    <td class="small text-muted">
+                      {{ record.reason }}
+                    </td>
+                    <td class="text-end fw-bold text-danger font-monospace">
+                      ${{ record.amount_at_risk|floatformat:2|intcomma }}
+                    </td>
+                    <td class="text-end">
+                      {% if record.detail_url %}
+                        <a href="{{ record.detail_url }}" class="btn btn-sm btn-outline-primary" target="_blank" rel="noopener">
+                          Inspect &rarr;
+                        </a>
+                      {% else %}
+                        <span class="text-muted small">N/A</span>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+          {% if check.has_more %}
+            <div class="p-3 bg-light text-center border-top small text-muted">
+              Displaying the top <strong>25</strong> highest-risk incidents. 
+              <strong>{{ check.remaining_count|intcomma }}</strong> additional incident{{ check.remaining_count|pluralize }} detected for this audit.
+            </div>
+          {% endif %}
+
+        {% else %}
+          <div class="p-4 text-center">
+            <svg class="bi text-success mb-2" width="36" height="36" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+            </svg>
+            <h6 class="fw-bold text-success mb-1">Audit Passed &mdash; Zero Leaks Detected</h6>
+            <p class="text-muted small mb-0">No records violated this check invariant in the database.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  {% endfor %}
+
+</div>
+{% endblock %}

@@ -3,44 +3,157 @@
 {% block title %}Sign In - BrightLoop{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center py-5">
-  <div class="col-md-5 col-lg-4">
-    <div class="card shadow border-0">
-      <div class="card-body p-4">
-        <h3 class="card-title fw-bold text-center mb-1">Sign In</h3>
-        <p class="text-muted text-center small mb-4">Enter your credentials to access your BrightLoop account</p>
+<div class="row justify-content-center align-items-center py-4 py-md-5">
+  <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
+    
+    <!-- Modern SaaS Login Card -->
+    <div class="card shadow-sm border border-light-subtle rounded-4 overflow-hidden bg-white">
+      
+      <!-- Card Body -->
+      <div class="card-body p-4 p-sm-5">
+        
+        <!-- BrightLoop Branding Header -->
+        <div class="text-center mb-4">
+          <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle shadow-sm mb-3" style="width: 56px; height: 56px;">
+            <span class="fw-bold fs-4">BL</span>
+          </div>
+          <h1 class="h4 fw-bold mb-1 text-dark">Welcome back</h1>
+          <p class="text-muted small mb-0">Sign in to your BrightLoop account</p>
+        </div>
 
+        <!-- Form Validation Errors Display -->
         {% include "includes/form_errors.html" %}
 
-        <form method="post" novalidate>
+        <!-- Login Form -->
+        <form method="post" action="{% url 'accounts:login' %}" novalidate id="loginForm">
           {% csrf_token %}
           <input type="hidden" name="next" value="{{ next }}">
 
+          <!-- Email Input Group -->
           <div class="mb-3">
-            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold">Email address</label>
-            {{ form.email }}
+            <label for="{{ form.email.id_for_label }}" class="form-label fw-semibold small text-secondary">
+              Email address
+            </label>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted border-end-0">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z"/>
+                </svg>
+              </span>
+              {{ form.email }}
+            </div>
+            {% if form.email.errors %}
+              <div class="text-danger small mt-1">
+                {{ form.email.errors.0 }}
+              </div>
+            {% endif %}
           </div>
 
+          <!-- Password Input Group with Show/Hide -->
           <div class="mb-3">
-            <div class="d-flex justify-content-between align-items-center">
-              <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold mb-0">Password</label>
-              <a href="{% url 'accounts:password_reset' %}" class="small text-decoration-none">Forgot password?</a>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold small text-secondary mb-0">
+                Password
+              </label>
+              <a href="{% url 'accounts:password_reset' %}" class="small text-primary text-decoration-none fw-medium">
+                Forgot password?
+              </a>
             </div>
-            <div class="mt-1">
+            <div class="input-group">
+              <span class="input-group-text bg-light text-muted border-end-0">
+                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M8 1a2 2 0 0 1 2 2v2H6V3a2 2 0 0 1 2-2zm3 4V3a3 3 0 1 0-6 0v2H3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2zm-6 2h6v6H5V7z"/>
+                </svg>
+              </span>
               {{ form.password }}
+              <button class="btn btn-outline-secondary border-start-0 bg-white" type="button" id="togglePasswordBtn" aria-label="Toggle password visibility">
+                <!-- Eye icon (visible by default) -->
+                <svg id="eyeIconOpen" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z"/>
+                  <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                </svg>
+                <!-- Eye slash icon (hidden by default) -->
+                <svg id="eyeIconSlash" class="d-none" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" aria-hidden="true">
+                  <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a7.028 7.028 0 0 0-2.79.588l.77.771A5.944 5.944 0 0 1 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.134 13.134 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755-.165.165-.337.328-.517.486l.708.709z"/>
+                  <path d="M11.297 9.174a3.5 3.5 0 0 0-4.47-4.47l4.47 4.47z"/>
+                  <path d="M4.646 4.646a.5.5 0 0 1 .708 0l8 8a.5.5 0 0 1-.708.708l-8-8a.5.5 0 0 1 0-.708z"/>
+                  <path d="M1.172 8l-.173.288s3 5.5 8 5.5c1.077 0 2.07-.323 2.95-.874l-.79-.79a6.002 6.002 0 0 1-2.16.664C5.88 12.5 4.12 11.332 2.832 10.043A13.133 13.133 0 0 1 1.172 8z"/>
+                </svg>
+              </button>
             </div>
+            {% if form.password.errors %}
+              <div class="text-danger small mt-1">
+                {{ form.password.errors.0 }}
+              </div>
+            {% endif %}
           </div>
 
-          <button type="submit" class="btn btn-primary w-100 py-2 mt-2 shadow-sm">Sign In</button>
+          <!-- Remember Me Checkbox -->
+          <div class="form-check mb-4">
+            {{ form.remember_me }}
+            <label class="form-check-label small text-secondary" for="{{ form.remember_me.id_for_label }}">
+              Remember me on this device
+            </label>
+          </div>
+
+          <!-- Submit Button with Interactive Loading State -->
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" id="loginSubmitBtn">
+            <span id="btnContent">Sign In</span>
+          </button>
         </form>
 
-        <hr class="my-4">
-
-        <div class="text-center small text-muted">
-          Need a customer account? <a href="{% url 'accounts:signup' %}" class="text-primary fw-semibold">Sign Up</a>
-        </div>
       </div>
+
+      <!-- Card Footer with Sign Up Link -->
+      <div class="card-footer bg-light border-top py-3 text-center">
+        <span class="small text-muted">Don't have an account yet?</span>
+        <a href="{% url 'accounts:signup' %}" class="small text-primary fw-semibold text-decoration-none ms-1">
+          Sign up as Customer
+        </a>
+      </div>
+
     </div>
+
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // 1. Password show/hide functionality
+    var toggleBtn = document.getElementById('togglePasswordBtn');
+    var passwordInput = document.getElementById('id_password');
+    var eyeOpen = document.getElementById('eyeIconOpen');
+    var eyeSlash = document.getElementById('eyeIconSlash');
+
+    if (toggleBtn && passwordInput) {
+      toggleBtn.addEventListener('click', function () {
+        var isPassword = passwordInput.getAttribute('type') === 'password';
+        passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+        eyeOpen.classList.toggle('d-none', isPassword);
+        eyeSlash.classList.toggle('d-none', !isPassword);
+        passwordInput.focus();
+      });
+    }
+
+    // 2. Button loading state on form submission
+    var form = document.getElementById('loginForm');
+    var submitBtn = document.getElementById('loginSubmitBtn');
+    var btnContent = document.getElementById('btnContent');
+
+    if (form && submitBtn && btnContent) {
+      form.addEventListener('submit', function () {
+        // Only trigger loading state if required fields are filled
+        var emailInput = document.getElementById('id_email');
+        if (emailInput && emailInput.value.trim() && passwordInput && passwordInput.value.trim()) {
+          submitBtn.disabled = true;
+          btnContent.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Signing in...';
+          // Ensure form submits even with disabled button
+          form.submit();
+        }
+      });
+    }
+  });
+</script>
 {% endblock %}

@@ -1,16 +1,31 @@
-{# templates/includes/pagination.html #}
-{# Purpose: Reusable Bootstrap 5 pagination controls for any view passing 'page_obj' #}
+{% comment %}
+  templates/includes/pagination.html
+  ====================================
+  HOW TO USE:
+    include 'includes/pagination.html'
+  
+  Renders Bootstrap 5 pagination controls for any paginated view.
+  Requires 'page_obj' in the template context (standard from Django's ListView
+  or Paginator).
+  
+  IMPORTANT: This template preserves existing query string parameters (e.g. 
+  search filters, sort order) when navigating between pages. It reads 
+  request.GET to rebuild the query string with the updated 'page' parameter.
+  
+  Requires: 'page_obj' context variable, 'request' context processor enabled.
+{% endcomment %}
 
 {% if page_obj.has_other_pages %}
   <nav aria-label="Page navigation" class="mt-4 no-print">
-    <ul class="pagination justify-content-center">
+    <ul class="pagination justify-content-center flex-wrap">
+
       {# Previous Page Button #}
       {% if page_obj.has_previous %}
         <li class="page-item">
-          <a class="page-link" href="?page=1" aria-label="First">&laquo; First</a>
+          <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page=1" aria-label="First">&laquo; First</a>
         </li>
         <li class="page-item">
-          <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">Previous</a>
+          <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" aria-label="Previous">Previous</a>
         </li>
       {% else %}
         <li class="page-item disabled">
@@ -21,20 +36,34 @@
         </li>
       {% endif %}
 
-      {# Current Page Indicator #}
-      <li class="page-item active" aria-current="page">
-        <span class="page-link">
-          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-        </span>
-      </li>
+      {# Page Numbers #}
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <li class="page-item active" aria-current="page">
+            <span class="page-link">{{ num }}</span>
+          </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <li class="page-item">
+            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+          </li>
+        {% elif num == 1 or num == page_obj.paginator.num_pages %}
+          <li class="page-item">
+            <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}">{{ num }}</a>
+          </li>
+        {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+          <li class="page-item disabled">
+            <span class="page-link">&hellip;</span>
+          </li>
+        {% endif %}
+      {% endfor %}
 
       {# Next Page Button #}
       {% if page_obj.has_next %}
         <li class="page-item">
-          <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">Next</a>
+          <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" aria-label="Next">Next</a>
         </li>
         <li class="page-item">
-          <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">Last &raquo;</a>
+          <a class="page-link" href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.paginator.num_pages }}" aria-label="Last">Last &raquo;</a>
         </li>
       {% else %}
         <li class="page-item disabled">
@@ -44,6 +73,7 @@
           <span class="page-link">Last &raquo;</span>
         </li>
       {% endif %}
+
     </ul>
   </nav>
 {% endif %}

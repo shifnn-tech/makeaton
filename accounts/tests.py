@@ -3,10 +3,11 @@ accounts/tests.py
 =================
 Purpose:
     Unit tests for the custom User model, password validator, role decorators,
-    and the filter_by_user data-scoping utility.
+    the filter_by_user data-scoping utility, and auth views (login/logout/signup).
 """
 
-from django.test import TestCase, RequestFactory
+from django.test import TestCase, Client
+from django.urls import reverse
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
@@ -80,3 +81,57 @@ class ScopingHelperTests(TestCase):
         qs = filter_by_user(Subscription.objects.all(), user1, user_field="customer")
         self.assertEqual(qs.count(), 1)
         self.assertEqual(qs.first().customer, user1)
+
+
+class AuthViewsTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            email="subscriber@brightloop.local",
+            password="SecurePassword@123",
+            first_name="Jane",
+            last_name="Doe",
+        )
+
+    def test_login_page_renders_cleanly(self):
+        response = self.client.get(reverse("accounts:login"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Sign In")
+        self.assertContains(response, "Welcome back")
+        self.assertContains(response, "id_email")
+        self.assertContains(response, "id_password")
+        self.assertContains(response, "id_remember_me")
+        self.assertContains(response, "togglePasswordBtn")
+        self.assertContains(response, reverse("accounts:password_reset"))
+        self.assertContains(response, reverse("accounts:signup"))
+
+    def test_login_success(self):
+        response = self.client.post(reverse("accounts:login"), {
+            "email": "subscriber@brightloop.local",
+            "password": "SecurePassword@123",
+            "remember_me": True,
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("accounts:home"))
+
+    def test_login_with_remember_me_unchecked(self):
+        response = self.client.post(reverse("accounts:login"), {
+            "email": "subscriber@brightloop.local",
+            "password": "SecurePassword@123",
+            # remember_me omitted -> False
+        })
+        self.assertEqual(response.status_code, 302)
+
+    def test_login_failure_invalid_credentials(self):
+        response = self.client.post(reverse("accounts:login"), {
+            "email": "subscriber@brightloop.local",
+            "password": "WrongPassword@999",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Invalid email address or password")
+
+    def test_logout(self):
+        self.client.login(email="subscriber@brightloop.local", password="SecurePassword@123")
+        response = self.client.post(reverse("accounts:logout"))
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.url, reverse("accounts:login"))

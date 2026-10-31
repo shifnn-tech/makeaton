@@ -54,6 +54,7 @@ def login_view(request):
     """
     Custom login view using email and password.
     Redirects to the 'next' parameter if present, or to the home dashboard.
+    Respects 'remember_me': sets session expiry accordingly.
     """
     if request.user.is_authenticated:
         return redirect("accounts:home")
@@ -65,6 +66,13 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
+
+            remember_me = form.cleaned_data.get("remember_me", True)
+            if not remember_me:
+                request.session.set_expiry(0)  # Expires when browser closes
+            else:
+                request.session.set_expiry(1209600)  # 2 weeks persistent session
+
             messages.success(request, f"Welcome back, {user.first_name or user.email}!")
             return redirect(next_url)
     else:

@@ -9,6 +9,8 @@ Purpose:
       - /subs/       -> subscriptions.urls (Contracts & Quotations)
       - /billing/    -> billing.urls (Invoices & Payments)
       - /dashboard/  -> dashboard.urls (Finance Analytics)
+      - /intelligence/ -> intelligence.urls (Revenue Intelligence)
+      - /portal/     -> portal.urls (Role Dashboards, Global Search, Calendar & Customer Portal)
       - /admin/      -> Django built-in Administration
 """
 
@@ -33,4 +35,10 @@ urlpatterns = [
 
     # Analytics & Finance Dashboard
     path("dashboard/", include("dashboard.urls", namespace="dashboard")),
+
+    # Revenue Intelligence (Person 3)
+    path("intelligence/", include("intelligence.urls", namespace="intelligence")),
+
+    # Unified Portal (Role Dashboards, Global Search, Calendar & Customer Management)
+    path("portal/", include("portal.urls", namespace="portal")),
 ]

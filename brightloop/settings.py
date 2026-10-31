@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
 
     # BrightLoop Apps (Kept modular so team members can work in parallel)
     "accounts.apps.AccountsConfig",
@@ -39,6 +40,8 @@ INSTALLED_APPS = [
     "subscriptions.apps.SubscriptionsConfig",
     "billing.apps.BillingConfig",
     "dashboard.apps.DashboardConfig",
+    "intelligence.apps.IntelligenceConfig",
+    "portal.apps.PortalConfig",
 ]
 
 MIDDLEWARE = [
@@ -64,6 +67,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "portal.context_processors.notifications_context",
             ],
         },
     },
@@ -104,7 +108,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Authentication URLs
 LOGIN_URL = "accounts:login"
-LOGIN_REDIRECT_URL = "accounts:home"
+LOGIN_REDIRECT_URL = "portal:landing"
 LOGOUT_REDIRECT_URL = "accounts:login"
 
 # Internationalization
@@ -129,13 +133,3 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # During local development and hackathons, password reset emails will print
 # directly into your terminal console without requiring an internet connection.
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
-# Gmail SMTP Configuration
-# Uncomment the block below and define environment variables to send real emails via Gmail:
-# EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-# EMAIL_HOST = os.environ.get("EMAIL_HOST", "smtp.gmail.com")
-# EMAIL_PORT = int(os.environ.get("EMAIL_PORT", 587))
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
-# EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")  # Use 16-character App Password
-# DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "BrightLoop <noreply@brightloop.local>")

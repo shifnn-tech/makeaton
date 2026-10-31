@@ -321,95 +321,99 @@ class Command(BaseCommand):
         # 4. Optional --big Scale Data (3,000+ Subscriptions, 10,000+ Invoices)
         # ----------------------------------------------------------------------
         if is_big:
-            self.stdout.write(self.style.WARNING("===> Generating --big scale dataset via bulk_create..."))
+            existing_big = Subscription.objects.filter(number__startswith="SUB-BIG-").count()
+            if existing_big >= 3000:
+                self.stdout.write(self.style.SUCCESS(f"Scale dataset already exists in database ({existing_big} subscriptions). Skipping duplicate generation."))
+            else:
+                self.stdout.write(self.style.WARNING("===> Generating --big scale dataset via bulk_create..."))
             
-            # Target counts
-            TARGET_SUBSCRIPTIONS = 3200
-            INVOICES_PER_SUB = 4  # 3200 * 4 = 12,800 invoices (>10,000)
+                # Target counts
+                TARGET_SUBSCRIPTIONS = 3200
+                INVOICES_PER_SUB = 4  # 3200 * 4 = 12,800 invoices (>10,000)
 
-            bulk_subs = []
-            for i in range(TARGET_SUBSCRIPTIONS):
-                c = customer_users[i % len(customer_users)]
-                p = plans_pool[i % len(plans_pool)]
-                s_status = random.choice([Subscription.STATUS_ACTIVE, Subscription.STATUS_ACTIVE, Subscription.STATUS_CONFIRMED, Subscription.STATUS_DRAFT, Subscription.STATUS_CLOSED])
-                s_date = today - timedelta(days=random.randint(30, 700))
-                s_next = today + timedelta(days=random.randint(-15, 30))
+                bulk_subs = []
+                for i in range(TARGET_SUBSCRIPTIONS):
+                    c = customer_users[i % len(customer_users)]
+                    p = plans_pool[i % len(plans_pool)]
+                    s_status = random.choice([Subscription.STATUS_ACTIVE, Subscription.STATUS_ACTIVE, Subscription.STATUS_CONFIRMED, Subscription.STATUS_DRAFT, Subscription.STATUS_CLOSED])
+                    s_date = today - timedelta(days=random.randint(30, 700))
+                    s_next = today + timedelta(days=random.randint(-15, 30))
 
-                sub_obj = Subscription(
-                    number=f"SUB-BIG-{i:05d}",
-                    customer=c,
-                    plan=p,
-                    start_date=s_date,
-                    status=s_status,
-                    payment_terms="Net 15",
-                    next_invoice_date=s_next,
-                )
-                bulk_subs.append(sub_obj)
-
-            self.stdout.write(f"Bulk creating {len(bulk_subs)} subscriptions...")
-            Subscription.objects.bulk_create(bulk_subs, batch_size=1000)
-            created_subs = list(Subscription.objects.filter(number__startswith="SUB-BIG-"))
-            self.stdout.write(self.style.SUCCESS(f"Saved {len(created_subs)} bulk subscriptions."))
-
-            # Now create bulk invoices
-            self.stdout.write("Generating 12,000+ bulk invoices...")
-            bulk_invoices = []
-            inv_counter = 0
-
-            for sub in created_subs:
-                plan_price = sub.plan.price
-                sub_tax = to_money(plan_price * Decimal("0.18"))
-                sub_tot = to_money(plan_price + sub_tax)
-
-                for m in range(INVOICES_PER_SUB):
-                    inv_counter += 1
-                    p_start = sub.start_date + timedelta(days=m * 30)
-                    p_end = p_start + timedelta(days=30)
-                    due = p_start + timedelta(days=14)
-
-                    # Determine realistic statuses
-                    if due < today - timedelta(days=30):
-                        status = Invoice.STATUS_PAID
-                    elif due < today:
-                        status = random.choice([Invoice.STATUS_PAID, Invoice.STATUS_CONFIRMED])
-                    else:
-                        status = random.choice([Invoice.STATUS_CONFIRMED, Invoice.STATUS_DRAFT])
-
-                    inv_obj = Invoice(
-                        number=f"INV-BIG-{inv_counter:06d}",
-                        subscription=sub,
-                        status=status,
-                        period_start=p_start,
-                        period_end=p_end,
-                        subtotal=plan_price,
-                        discount_amount=Decimal("0.00"),
-                        tax_amount=sub_tax,
-                        total=sub_tot,
-                        due_date=due,
+                    sub_obj = Subscription(
+                        number=f"SUB-BIG-{i:05d}",
+                        customer=c,
+                        plan=p,
+                        start_date=s_date,
+                        status=s_status,
+                        payment_terms="Net 15",
+                        next_invoice_date=s_next,
                     )
-                    bulk_invoices.append(inv_obj)
+                    bulk_subs.append(sub_obj)
 
-            self.stdout.write(f"Bulk inserting {len(bulk_invoices)} invoices...")
-            Invoice.objects.bulk_create(bulk_invoices, batch_size=2000)
-            self.stdout.write(self.style.SUCCESS(f"Successfully populated {len(bulk_invoices)} invoices!"))
+                self.stdout.write(f"Bulk creating {len(bulk_subs)} subscriptions...")
+                Subscription.objects.bulk_create(bulk_subs, batch_size=1000, ignore_conflicts=True)
+                created_subs = list(Subscription.objects.filter(number__startswith="SUB-BIG-"))
+                self.stdout.write(self.style.SUCCESS(f"Saved {len(created_subs)} bulk subscriptions."))
 
-            # Bulk create payments for paid invoices
-            self.stdout.write("Populating payments for settled invoices...")
-            paid_invoices = list(Invoice.objects.filter(number__startswith="INV-BIG-", status=Invoice.STATUS_PAID)[:6000])
-            bulk_payments = []
-            for p_inv in paid_invoices:
-                bulk_payments.append(
-                    Payment(
-                        invoice=p_inv,
-                        method=random.choice([Payment.METHOD_CREDIT_CARD, Payment.METHOD_UPI, Payment.METHOD_BANK_TRANSFER]),
-                        amount=p_inv.total,
-                        date=p_inv.due_date - timedelta(days=2),
-                        note="Bulk test payment",
+                # Now create bulk invoices
+                self.stdout.write("Generating 12,000+ bulk invoices...")
+                bulk_invoices = []
+                inv_counter = 0
+
+                for sub in created_subs:
+                    plan_price = sub.plan.price
+                    sub_tax = to_money(plan_price * Decimal("0.18"))
+                    sub_tot = to_money(plan_price + sub_tax)
+
+                    for m in range(INVOICES_PER_SUB):
+                        inv_counter += 1
+                        p_start = sub.start_date + timedelta(days=m * 30)
+                        p_end = p_start + timedelta(days=30)
+                        due = p_start + timedelta(days=14)
+
+                        # Determine realistic statuses
+                        if due < today - timedelta(days=30):
+                            status = Invoice.STATUS_PAID
+                        elif due < today:
+                            status = random.choice([Invoice.STATUS_PAID, Invoice.STATUS_CONFIRMED])
+                        else:
+                            status = random.choice([Invoice.STATUS_CONFIRMED, Invoice.STATUS_DRAFT])
+
+                        inv_obj = Invoice(
+                            number=f"INV-BIG-{inv_counter:06d}",
+                            subscription=sub,
+                            status=status,
+                            period_start=p_start,
+                            period_end=p_end,
+                            subtotal=plan_price,
+                            discount_amount=Decimal("0.00"),
+                            tax_amount=sub_tax,
+                            total=sub_tot,
+                            due_date=due,
+                        )
+                        bulk_invoices.append(inv_obj)
+
+                self.stdout.write(f"Bulk inserting {len(bulk_invoices)} invoices...")
+                Invoice.objects.bulk_create(bulk_invoices, batch_size=2000, ignore_conflicts=True)
+                self.stdout.write(self.style.SUCCESS(f"Successfully populated {len(bulk_invoices)} invoices!"))
+
+                # Bulk create payments for paid invoices
+                self.stdout.write("Populating payments for settled invoices...")
+                paid_invoices = list(Invoice.objects.filter(number__startswith="INV-BIG-", status=Invoice.STATUS_PAID)[:6000])
+                bulk_payments = []
+                for p_inv in paid_invoices:
+                    bulk_payments.append(
+                        Payment(
+                            invoice=p_inv,
+                            method=random.choice([Payment.METHOD_CREDIT_CARD, Payment.METHOD_UPI, Payment.METHOD_BANK_TRANSFER]),
+                            amount=p_inv.total,
+                            date=p_inv.due_date - timedelta(days=2),
+                            note="Bulk test payment",
+                        )
                     )
-                )
 
-            Payment.objects.bulk_create(bulk_payments, batch_size=2000)
-            self.stdout.write(self.style.SUCCESS(f"Saved {len(bulk_payments)} bulk payments."))
+                Payment.objects.bulk_create(bulk_payments, batch_size=2000, ignore_conflicts=True)
+                self.stdout.write(self.style.SUCCESS(f"Saved {len(bulk_payments)} bulk payments."))
 
         self.stdout.write(self.style.SUCCESS("===> Seed data command completed successfully!"))
         self.stdout.write("\nCredentials for testing:")

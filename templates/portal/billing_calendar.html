@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Billing Calendar & Renewals - BrightLoop{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-2">
+    <div>
+      <h2 class="fw-bold mb-1">Billing Calendar & Upcoming Renewals</h2>
+      <p class="text-muted mb-0">Projected renewal pipeline for the next 30 days ({{ today|date:"M d, Y" }} &mdash; {{ end_date|date:"M d, Y" }}).</p>
+    </div>
+    <div>
+      {% if is_internal_staff %}
+        <a href="{% url 'portal:staff_dashboard' %}" class="btn btn-outline-secondary btn-sm">&larr; Staff Dashboard</a>
+      {% else %}
+        <a href="{% url 'portal:customer_dashboard' %}" class="btn btn-outline-secondary btn-sm">&larr; My Dashboard</a>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Summary Banner -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-6 col-lg-3">
+      <div class="card shadow-sm border-0 stat-card">
+        <div class="card-body">
+          <span class="text-muted small text-uppercase fw-bold">30-Day Renewals</span>
+          <h2 class="display-6 fw-bold my-2 text-primary-brand">{{ grand_total_subs }}</h2>
+          <span class="small text-muted">Contracts renewing in window</span>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="card shadow-sm border-0 stat-card-success">
+        <div class="card-body">
+          <span class="text-muted small text-uppercase fw-bold">Projected Revenue</span>
+          <h2 class="display-6 fw-bold my-2 text-success">${{ grand_total_amount|floatformat:2|intcomma }}</h2>
+          <span class="small text-muted">Estimated renewal volume</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Weekly Grouped Lists -->
+  <div class="row g-4">
+    {% for week in weeks %}
+    <div class="col-12">
+      <div class="card shadow-sm border-0">
+        <div class="card-header bg-white border-bottom py-3 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+          <div>
+            <h5 class="fw-bold mb-0 text-dark">{{ week.title }}</h5>
+            <small class="text-muted">{{ week.start|date:"M d" }} &ndash; {{ week.end|date:"M d, Y" }}</small>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            <span class="badge bg-light text-dark border px-3 py-2 fs-6">
+              <strong>{{ week.count }}</strong> contract{{ week.count|pluralize }}
+            </span>
+            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 fs-6 fw-bold">
+              ${{ week.projected_total|floatformat:2|intcomma }}
+            </span>
+          </div>
+        </div>
+
+        {% if week.subscriptions %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Next Invoice Date</th>
+                <th>Subscription #</th>
+                {% if is_internal_staff %}<th>Customer</th>{% endif %}
+                <th>Plan Name</th>
+                <th>Billing Cycle</th>
+                <th>Plan Price</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for sub in week.subscriptions %}
+              <tr>
+                <td class="fw-bold text-primary-brand">
+                  {{ sub.next_invoice_date|date:"D, M d, Y" }}
+                </td>
+                <td class="fw-semibold">
+                  <a href="{% url 'subscriptions:detail' sub.id %}">{{ sub.number }}</a>
+                </td>
+                {% if is_internal_staff %}
+                  <td>
+                    <a href="{% url 'portal:customer_detail' sub.customer.id %}" class="text-decoration-none">
+                      {{ sub.customer.email }}
+                    </a>
+                  </td>
+                {% endif %}
+                <td>{{ sub.plan.name }}</td>
+                <td><span class="badge bg-light text-secondary border">{{ sub.plan.get_billing_period_display }}</span></td>
+                <td class="fw-bold">${{ sub.plan.price|floatformat:2|intcomma }}</td>
+                <td><span class="badge badge-status-active">Active</span></td>
+                <td>
+                  <a href="{% url 'subscriptions:detail' sub.id %}" class="btn btn-sm btn-outline-secondary">Inspect</a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="card-body text-center py-4 text-muted">
+          <p class="mb-0 small">No renewals scheduled for this week.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}
+
