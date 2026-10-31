@@ -8,8 +8,11 @@ Purpose:
       - 2 Staff users (staff1@..., staff2@...)
       - 20 Customer users (customer1@... to customer20@...)
       - Catalog entities: Products, Variants, Plans, Taxes, Discounts, Quotation Templates
-      - Realistic starter subscriptions and invoices
-    
+      - Realistic starter subscriptions and invoices (including overdue ones and upcoming renewals)
+      - Payments for settled invoices
+      - Portal: Notifications (due soon + overdue) for each customer
+      - Portal: AuditLog entries recording the seed operations
+
     Optional --big flag:
       Uses bulk_create to quickly populate 3,000+ subscriptions and 10,000+ invoices
       for high-scale performance testing and aggregate dashboard validation.
@@ -28,12 +31,13 @@ from django.utils import timezone
 from catalog.models import Product, ProductVariant, Plan, Tax, Discount
 from subscriptions.models import QuotationTemplate, TemplateLine, Subscription, SubscriptionLine
 from billing.models import Invoice, InvoiceLine, Payment
+from portal.models import Notification, AuditLog
 
 User = get_user_model()
 
 
 class Command(BaseCommand):
-    help = "Seeds database with demo accounts, catalog, subscriptions, invoices, and payments."
+    help = "Seeds database with demo accounts, catalog, subscriptions, invoices, payments, notifications and audit logs."
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -88,7 +92,7 @@ class Command(BaseCommand):
             cust, _ = User.objects.get_or_create(
                 email=f"customer{i}@brightloop.local",
                 defaults={
-                    "first_name": f"Customer",
+                    "first_name": "Customer",
                     "last_name": f"User-{i}",
                     "role": User.ROLE_CUSTOMER,
                     "is_staff": False,
@@ -205,13 +209,29 @@ class Command(BaseCommand):
         ]
 
         def to_money(val):
+            """Round a number to 2 decimal places for monetary fields."""
             return Decimal(str(val)).quantize(Decimal("0.01"))
 
         sample_subs = []
+        audit_log_entries = []   # collect for bulk_create later
+        notifications_to_create = []  # collect notifications for bulk_create
+
         for idx, customer in enumerate(customer_users[:12]):
             chosen_plan = plans_pool[idx % len(plans_pool)]
             chosen_status = statuses[idx % len(statuses)]
             sub_date = today - timedelta(days=idx * 15)
+
+            # upcoming renewal: some within 30 days (for the billing calendar)
+            # overdue renewals: a few already past today (next_invoice_date in the past)
+            if idx % 3 == 0:
+                # Make next_invoice_date in the past → the subscription needs re-invoicing
+                next_inv = today - timedelta(days=random.randint(1, 20))
+            elif idx % 3 == 1:
+                # Coming up soon (within 30 days)
+                next_inv = today + timedelta(days=random.randint(1, 28))
+            else:
+                # Farther out
+                next_inv = today + timedelta(days=random.randint(31, 90))
 
             sub = Subscription.objects.create(
                 customer=customer,
@@ -219,11 +239,20 @@ class Command(BaseCommand):
                 start_date=sub_date,
                 status=chosen_status,
                 payment_terms="Net 15",
-                next_invoice_date=today + timedelta(days=(idx % 7) - 3),
+                next_invoice_date=next_inv,
             )
             sample_subs.append(sub)
 
-            # Add line item
+            # Record this creation in the audit log
+            audit_log_entries.append(AuditLog(
+                user=admin_user,
+                action=AuditLog.ACTION_CREATE,
+                model_name="Subscription",
+                object_id=str(sub.id),
+                description=f"Seeded subscription {sub.number} for {customer.email} on plan '{chosen_plan.name}'.",
+            ))
+
+            # Add a line item for the subscription
             prod = products_pool[idx % len(products_pool)]
             SubscriptionLine.objects.create(
                 subscription=sub,
@@ -236,7 +265,7 @@ class Command(BaseCommand):
 
             # Generate sample invoices for active/confirmed subscriptions
             if chosen_status in [Subscription.STATUS_ACTIVE, Subscription.STATUS_CONFIRMED]:
-                # Period 1 (Settled)
+                # --- Period 1: Settled (paid) invoice ---
                 p1_start = sub_date
                 p1_end = sub_date + timedelta(days=30)
                 inv1_tax = to_money(chosen_plan.price * Decimal("0.18"))
@@ -262,7 +291,7 @@ class Command(BaseCommand):
                     tax_rate=Decimal("18.00"),
                     amount=chosen_plan.price,
                 )
-                # Full Payment
+                # Full payment for period 1
                 Payment.objects.create(
                     invoice=inv1,
                     method=Payment.METHOD_CREDIT_CARD,
@@ -270,13 +299,22 @@ class Command(BaseCommand):
                     date=p1_start + timedelta(days=2),
                     note="Autopay settled",
                 )
+                audit_log_entries.append(AuditLog(
+                    user=admin_user,
+                    action=AuditLog.ACTION_CREATE,
+                    model_name="Invoice",
+                    object_id=str(inv1.id),
+                    description=f"Seeded paid invoice {inv1.number} for subscription {sub.number}.",
+                ))
 
-                # Period 2 (Recent - maybe Overdue or Confirmed)
+                # --- Period 2: Overdue or upcoming invoice ---
                 p2_start = p1_end + timedelta(days=1)
                 p2_end = p2_start + timedelta(days=30)
+
+                # Alternate: even-indexed customers get overdue invoice, odd get upcoming
                 is_overdue_sample = (idx % 2 == 0)
                 inv2_status = Invoice.STATUS_CONFIRMED
-                inv2_due = today - timedelta(days=5) if is_overdue_sample else today + timedelta(days=10)
+                inv2_due = today - timedelta(days=random.randint(5, 30)) if is_overdue_sample else today + timedelta(days=random.randint(1, 14))
                 disc_val = Decimal("10.00") if chosen_plan.price > Decimal("20.00") else Decimal("0.00")
                 inv2_subtotal = chosen_plan.price
                 inv2_tax = to_money((inv2_subtotal - disc_val) * Decimal("0.18"))
@@ -302,18 +340,115 @@ class Command(BaseCommand):
                     tax_rate=Decimal("18.00"),
                     amount=chosen_plan.price,
                 )
+                audit_log_entries.append(AuditLog(
+                    user=admin_user,
+                    action=AuditLog.ACTION_CREATE,
+                    model_name="Invoice",
+                    object_id=str(inv2.id),
+                    description=(
+                        f"Seeded {'OVERDUE' if is_overdue_sample else 'upcoming'} invoice {inv2.number} "
+                        f"(due {inv2_due}) for subscription {sub.number}."
+                    ),
+                ))
+
+                # Build notification for the customer about this invoice
+                if is_overdue_sample:
+                    notif_message = (
+                        f"Invoice {inv2.number} is OVERDUE (due {inv2_due.strftime('%b %d, %Y')}). "
+                        f"Amount: ${inv2_total}. Please settle immediately."
+                    )
+                    notif_link = f"/billing/{inv2.id}/"
+                    # Only create if not already exists (idempotent)
+                    already = Notification.objects.filter(
+                        user=customer, link=notif_link, message__icontains="OVERDUE"
+                    ).exists()
+                    if not already:
+                        notifications_to_create.append(Notification(
+                            user=customer,
+                            message=notif_message,
+                            link=notif_link,
+                            is_read=False,
+                        ))
+                else:
+                    # Due-soon notification
+                    days_left = (inv2_due - today).days
+                    notif_message = (
+                        f"Invoice {inv2.number} is due in {days_left} day(s) "
+                        f"(on {inv2_due.strftime('%b %d, %Y')}). Amount: ${inv2_total}."
+                    )
+                    notif_link = f"/billing/{inv2.id}/"
+                    already = Notification.objects.filter(
+                        user=customer, link=notif_link, message__icontains="due in"
+                    ).exists()
+                    if not already:
+                        notifications_to_create.append(Notification(
+                            user=customer,
+                            message=notif_message,
+                            link=notif_link,
+                            is_read=False,
+                        ))
 
                 # Partial payment on some invoices
                 if idx % 3 == 0:
                     partial = Decimal("20.00")
                     if partial < inv2.total:
-                        Payment.objects.create(
+                        pmt = Payment.objects.create(
                             invoice=inv2,
                             method=Payment.METHOD_UPI,
                             amount=partial,
                             date=today,
                             note="Partial installment",
                         )
+                        audit_log_entries.append(AuditLog(
+                            user=None,  # automated system payment
+                            action=AuditLog.ACTION_CREATE,
+                            model_name="Payment",
+                            object_id=str(pmt.id),
+                            description=f"Partial payment of ${partial} recorded for invoice {inv2.number}.",
+                        ))
+
+        # Bulk-create all notifications (skip duplicates gracefully)
+        if notifications_to_create:
+            Notification.objects.bulk_create(notifications_to_create, ignore_conflicts=True)
+            self.stdout.write(self.style.SUCCESS(f"Created {len(notifications_to_create)} customer notifications."))
+
+        # Bulk-create all audit log entries
+        if audit_log_entries:
+            AuditLog.objects.bulk_create(audit_log_entries, batch_size=500, ignore_conflicts=False)
+            self.stdout.write(self.style.SUCCESS(f"Created {len(audit_log_entries)} audit log entries."))
+
+        # Also add a few admin-level audit logs (discount updates, user registrations, etc.)
+        admin_audit = [
+            AuditLog(
+                user=admin_user,
+                action=AuditLog.ACTION_CREATE,
+                model_name="Discount",
+                object_id=str(disc_launch.id),
+                description=f"Seeded discount '{disc_launch.name}' (10% off subscriptions above $50).",
+            ),
+            AuditLog(
+                user=admin_user,
+                action=AuditLog.ACTION_CREATE,
+                model_name="Discount",
+                object_id=str(disc_fixed.id),
+                description=f"Seeded discount '{disc_fixed.name}' ($50 off subscriptions above $200).",
+            ),
+            AuditLog(
+                user=admin_user,
+                action=AuditLog.ACTION_UPDATE,
+                model_name="Discount",
+                object_id=str(disc_launch.id),
+                description="Updated discount LAUNCH10 usage_limit from 200 to 500 for wider campaign.",
+            ),
+            AuditLog(
+                user=None,
+                action=AuditLog.ACTION_CREATE,
+                model_name="User",
+                object_id=str(admin_user.id),
+                description="System bootstrapped admin account admin@brightloop.local.",
+            ),
+        ]
+        AuditLog.objects.bulk_create(admin_audit, ignore_conflicts=False)
 
         self.stdout.write(self.style.SUCCESS("Base seed data generated successfully."))
 
@@ -323,10 +458,12 @@ class Command(BaseCommand):
         if is_big:
             existing_big = Subscription.objects.filter(number__startswith="SUB-BIG-").count()
             if existing_big >= 3000:
-                self.stdout.write(self.style.SUCCESS(f"Scale dataset already exists in database ({existing_big} subscriptions). Skipping duplicate generation."))
+                self.stdout.write(self.style.SUCCESS(
+                    f"Scale dataset already exists ({existing_big} subscriptions). Skipping."
+                ))
             else:
                 self.stdout.write(self.style.WARNING("===> Generating --big scale dataset via bulk_create..."))
-            
+
                 # Target counts
                 TARGET_SUBSCRIPTIONS = 3200
                 INVOICES_PER_SUB = 4  # 3200 * 4 = 12,800 invoices (>10,000)
@@ -335,11 +472,18 @@ class Command(BaseCommand):
                 for i in range(TARGET_SUBSCRIPTIONS):
                     c = customer_users[i % len(customer_users)]
                     p = plans_pool[i % len(plans_pool)]
-                    s_status = random.choice([Subscription.STATUS_ACTIVE, Subscription.STATUS_ACTIVE, Subscription.STATUS_CONFIRMED, Subscription.STATUS_DRAFT, Subscription.STATUS_CLOSED])
+                    s_status = random.choice([
+                        Subscription.STATUS_ACTIVE,
+                        Subscription.STATUS_ACTIVE,
+                        Subscription.STATUS_CONFIRMED,
+                        Subscription.STATUS_DRAFT,
+                        Subscription.STATUS_CLOSED,
+                    ])
                     s_date = today - timedelta(days=random.randint(30, 700))
+                    # Mix of upcoming renewals and past-due renewals
                     s_next = today + timedelta(days=random.randint(-15, 30))
 
-                    sub_obj = Subscription(
+                    bulk_subs.append(Subscription(
                         number=f"SUB-BIG-{i:05d}",
                         customer=c,
                         plan=p,
@@ -347,16 +491,15 @@ class Command(BaseCommand):
                         status=s_status,
                         payment_terms="Net 15",
                         next_invoice_date=s_next,
-                    )
-                    bulk_subs.append(sub_obj)
+                    ))
 
                 self.stdout.write(f"Bulk creating {len(bulk_subs)} subscriptions...")
                 Subscription.objects.bulk_create(bulk_subs, batch_size=1000, ignore_conflicts=True)
                 created_subs = list(Subscription.objects.filter(number__startswith="SUB-BIG-"))
                 self.stdout.write(self.style.SUCCESS(f"Saved {len(created_subs)} bulk subscriptions."))
 
-                # Now create bulk invoices
-                self.stdout.write("Generating 12,000+ bulk invoices...")
+                # Bulk create invoices (including overdue ones)
+                self.stdout.write("Generating 12,000+ bulk invoices (including overdue + upcoming)...")
                 bulk_invoices = []
                 inv_counter = 0
 
@@ -371,15 +514,17 @@ class Command(BaseCommand):
                         p_end = p_start + timedelta(days=30)
                         due = p_start + timedelta(days=14)
 
-                        # Determine realistic statuses
+                        # Realistic status distribution:
+                        # very old → paid; recent past → mix paid/overdue; future → draft/confirmed
                         if due < today - timedelta(days=30):
                             status = Invoice.STATUS_PAID
                         elif due < today:
+                            # Some are overdue (confirmed but past due)
                             status = random.choice([Invoice.STATUS_PAID, Invoice.STATUS_CONFIRMED])
                         else:
                             status = random.choice([Invoice.STATUS_CONFIRMED, Invoice.STATUS_DRAFT])
 
-                        inv_obj = Invoice(
+                        bulk_invoices.append(Invoice(
                             number=f"INV-BIG-{inv_counter:06d}",
                             subscription=sub,
                             status=status,
@@ -390,8 +535,7 @@ class Command(BaseCommand):
                             tax_amount=sub_tax,
                             total=sub_tot,
                             due_date=due,
-                        )
-                        bulk_invoices.append(inv_obj)
+                        ))
 
                 self.stdout.write(f"Bulk inserting {len(bulk_invoices)} invoices...")
                 Invoice.objects.bulk_create(bulk_invoices, batch_size=2000, ignore_conflicts=True)
@@ -399,21 +543,62 @@ class Command(BaseCommand):
 
                 # Bulk create payments for paid invoices
                 self.stdout.write("Populating payments for settled invoices...")
-                paid_invoices = list(Invoice.objects.filter(number__startswith="INV-BIG-", status=Invoice.STATUS_PAID)[:6000])
+                paid_invoices = list(Invoice.objects.filter(
+                    number__startswith="INV-BIG-", status=Invoice.STATUS_PAID
+                )[:6000])
                 bulk_payments = []
                 for p_inv in paid_invoices:
-                    bulk_payments.append(
-                        Payment(
-                            invoice=p_inv,
-                            method=random.choice([Payment.METHOD_CREDIT_CARD, Payment.METHOD_UPI, Payment.METHOD_BANK_TRANSFER]),
-                            amount=p_inv.total,
-                            date=p_inv.due_date - timedelta(days=2),
-                            note="Bulk test payment",
-                        )
-                    )
+                    bulk_payments.append(Payment(
+                        invoice=p_inv,
+                        method=random.choice([
+                            Payment.METHOD_CREDIT_CARD,
+                            Payment.METHOD_UPI,
+                            Payment.METHOD_BANK_TRANSFER,
+                        ]),
+                        amount=p_inv.total,
+                        date=p_inv.due_date - timedelta(days=2),
+                        note="Bulk test payment",
+                    ))
 
                 Payment.objects.bulk_create(bulk_payments, batch_size=2000, ignore_conflicts=True)
                 self.stdout.write(self.style.SUCCESS(f"Saved {len(bulk_payments)} bulk payments."))
+
+                # Bulk create audit log entries for big dataset (sample: 1 per 100 subs)
+                self.stdout.write("Adding bulk audit log sample entries...")
+                big_audit = [
+                    AuditLog(
+                        user=admin_user,
+                        action=AuditLog.ACTION_CREATE,
+                        model_name="Subscription",
+                        object_id=sub.number,
+                        description=f"[--big] Bulk-seeded subscription {sub.number} for {sub.customer.email}.",
+                    )
+                    for sub in created_subs[::100]  # every 100th subscription
+                ]
+                AuditLog.objects.bulk_create(big_audit, batch_size=500, ignore_conflicts=False)
+                self.stdout.write(self.style.SUCCESS(f"Added {len(big_audit)} bulk audit log sample entries."))
+
+                # Bulk create notifications for overdue big invoices (sample: first 50)
+                self.stdout.write("Adding bulk overdue notifications (sample)...")
+                overdue_big = list(Invoice.objects.filter(
+                    number__startswith="INV-BIG-",
+                    status=Invoice.STATUS_CONFIRMED,
+                    due_date__lt=today,
+                ).select_related("subscription__customer")[:50])
+                big_notifs = [
+                    Notification(
+                        user=inv.subscription.customer,
+                        message=(
+                            f"Invoice {inv.number} is OVERDUE (due {inv.due_date.strftime('%b %d, %Y')}). "
+                            f"Amount: ${inv.total}. Please settle immediately."
+                        ),
+                        link=f"/billing/{inv.id}/",
+                        is_read=False,
+                    )
+                    for inv in overdue_big
+                ]
+                Notification.objects.bulk_create(big_notifs, batch_size=200, ignore_conflicts=True)
+                self.stdout.write(self.style.SUCCESS(f"Added {len(big_notifs)} bulk overdue notifications."))
 
         self.stdout.write(self.style.SUCCESS("===> Seed data command completed successfully!"))
         self.stdout.write("\nCredentials for testing:")

@@ -9,20 +9,104 @@
     <!-- Modern SaaS Login Card -->
     <div class="card shadow-sm border border-light-subtle rounded-4 overflow-hidden bg-white">
       
+      <!-- Portal Selector Navigation Tabs -->
+      <div class="card-header bg-light border-bottom p-2">
+        <ul class="nav nav-pills nav-fill" id="portalTabs" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button class="nav-link py-2 fw-semibold {% if portal != 'staff' %}active{% endif %}" 
+                    id="customer-tab" 
+                    type="button" 
+                    role="tab" 
+                    onclick="switchPortal('customer')">
+              <svg width="15" height="15" fill="currentColor" class="bi me-1" viewBox="0 0 16 16">
+                <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
+              </svg>
+              Customer
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button class="nav-link py-2 fw-semibold {% if portal == 'staff' %}active{% endif %}" 
+                    id="staff-tab" 
+                    type="button" 
+                    role="tab" 
+                    onclick="switchPortal('staff')">
+              <svg width="15" height="15" fill="currentColor" class="bi me-1" viewBox="0 0 16 16">
+                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
+                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
+              </svg>
+              Staff & Admin
+            </button>
+          </li>
+        </ul>
+      </div>
+
       <!-- Card Body -->
       <div class="card-body p-4 p-sm-5">
         
-        <!-- BrightLoop Branding Header -->
+        <!-- Dynamic Header based on active portal -->
         <div class="text-center mb-4">
-          <div class="d-inline-flex align-items-center justify-content-center bg-primary text-white rounded-circle shadow-sm mb-3" style="width: 56px; height: 56px;">
+          <div class="d-inline-flex align-items-center justify-content-center text-white rounded-circle shadow-sm mb-3" 
+               id="brandBadge"
+               style="width: 56px; height: 56px; background-color: {% if portal == 'staff' %}#7c3aed{% else %}#2563eb{% endif %};">
             <span class="fw-bold fs-4">BL</span>
           </div>
-          <h1 class="h4 fw-bold mb-1 text-dark">Welcome back</h1>
-          <p class="text-muted small mb-0">Sign in to your BrightLoop account</p>
+
+          <!-- Customer Portal Header -->
+          <div id="customerHeader" class="{% if portal == 'staff' %}d-none{% endif %}">
+            <h1 class="h4 fw-bold mb-1 text-dark">Customer Portal</h1>
+            <p class="text-muted small mb-0">Sign in to manage your subscriptions and invoices</p>
+          </div>
+
+          <!-- Staff / Admin Portal Header -->
+          <div id="staffHeader" class="{% if portal != 'staff' %}d-none{% endif %}">
+            <div class="mb-1">
+              <span class="badge bg-danger me-1">Admin</span>
+              <span class="badge text-white" style="background-color: #7c3aed;">Staff</span>
+            </div>
+            <h1 class="h4 fw-bold mb-1 text-dark">Internal Management</h1>
+            <p class="text-muted small mb-0">Operations, contracts, billing runner & analytics</p>
+          </div>
         </div>
 
         <!-- Form Validation Errors Display -->
         {% include "includes/form_errors.html" %}
+
+        <!-- Quick Demo Accounts Auto-fill Box -->
+        <div class="bg-light border rounded-3 p-3 mb-4">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="small fw-semibold text-secondary">
+              <svg width="14" height="14" fill="currentColor" class="bi me-1" viewBox="0 0 16 16">
+                <path d="M8 1a2 2 0 0 1 2 2v2H6V3a2 2 0 0 1 2-2zm3 4V3a3 3 0 1 0-6 0v2H3a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2zM4 6h8v8H4V6z"/>
+              </svg>
+              Quick Demo Fill
+            </span>
+            <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 0.65rem;">Seed Accounts</span>
+          </div>
+
+          <!-- Customer Demo Pill -->
+          <div id="customerDemoPills" class="{% if portal == 'staff' %}d-none{% endif %}">
+            <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2 demo-btn" 
+                    data-email="customer1@brightloop.local" 
+                    data-pass="SecurePassword@123">
+              Fill Customer (customer1)
+            </button>
+          </div>
+
+          <!-- Staff & Admin Demo Pills -->
+          <div id="staffDemoPills" class="d-flex gap-2 {% if portal != 'staff' %}d-none{% endif %}">
+            <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 demo-btn" 
+                    data-email="admin@brightloop.local" 
+                    data-pass="SecurePassword@123">
+              Fill Admin
+            </button>
+            <button type="button" class="btn btn-sm py-1 px-2 demo-btn text-white" 
+                    style="background-color: #7c3aed; border-color: #7c3aed;"
+                    data-email="staff1@brightloop.local" 
+                    data-pass="SecurePassword@123">
+              Fill Staff
+            </button>
+          </div>
+        </div>
 
         <!-- Login Form -->
         <form method="post" action="{% url 'accounts:login' %}" novalidate id="loginForm">
@@ -105,7 +189,7 @@
       </div>
 
       <!-- Card Footer with Sign Up Link -->
-      <div class="card-footer bg-light border-top py-3 text-center">
+      <div class="card-footer bg-light border-top py-3 text-center" id="signupFooter">
         <span class="small text-muted">Don't have an account yet?</span>
         <a href="{% url 'accounts:signup' %}" class="small text-primary fw-semibold text-decoration-none ms-1">
           Sign up as Customer
@@ -120,6 +204,44 @@
 
 {% block extra_js %}
 <script>
+  function switchPortal(portal) {
+    var customerTab = document.getElementById('customer-tab');
+    var staffTab = document.getElementById('staff-tab');
+    var brandBadge = document.getElementById('brandBadge');
+    var customerHeader = document.getElementById('customerHeader');
+    var staffHeader = document.getElementById('staffHeader');
+    var customerDemoPills = document.getElementById('customerDemoPills');
+    var staffDemoPills = document.getElementById('staffDemoPills');
+    var submitBtn = document.getElementById('loginSubmitBtn');
+    var signupFooter = document.getElementById('signupFooter');
+
+    if (portal === 'staff') {
+      customerTab.classList.remove('active');
+      staffTab.classList.add('active');
+      customerHeader.classList.add('d-none');
+      staffHeader.classList.remove('d-none');
+      customerDemoPills.classList.add('d-none');
+      staffDemoPills.classList.remove('d-none');
+      brandBadge.style.backgroundColor = '#7c3aed';
+      submitBtn.classList.remove('btn-primary');
+      submitBtn.style.backgroundColor = '#7c3aed';
+      submitBtn.style.borderColor = '#7c3aed';
+      signupFooter.innerHTML = '<span class="small text-muted">Staff accounts are managed by system administrators.</span>';
+    } else {
+      staffTab.classList.remove('active');
+      customerTab.classList.add('active');
+      staffHeader.classList.add('d-none');
+      customerHeader.classList.remove('d-none');
+      staffDemoPills.classList.add('d-none');
+      customerDemoPills.classList.remove('d-none');
+      brandBadge.style.backgroundColor = '#2563eb';
+      submitBtn.style.backgroundColor = '';
+      submitBtn.style.borderColor = '';
+      submitBtn.classList.add('btn-primary');
+      signupFooter.innerHTML = '<span class="small text-muted">Don\'t have an account yet?</span><a href="{% url "accounts:signup" %}" class="small text-primary fw-semibold text-decoration-none ms-1">Sign up as Customer</a>';
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     // 1. Password show/hide functionality
     var toggleBtn = document.getElementById('togglePasswordBtn');
@@ -144,16 +266,37 @@
 
     if (form && submitBtn && btnContent) {
       form.addEventListener('submit', function () {
-        // Only trigger loading state if required fields are filled
         var emailInput = document.getElementById('id_email');
         if (emailInput && emailInput.value.trim() && passwordInput && passwordInput.value.trim()) {
           submitBtn.disabled = true;
           btnContent.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Signing in...';
-          // Ensure form submits even with disabled button
           form.submit();
         }
       });
     }
+
+    // 3. Demo buttons auto-fill
+    var demoButtons = document.querySelectorAll('.demo-btn');
+    var emailInput = document.getElementById('id_email');
+
+    demoButtons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var email = this.getAttribute('data-email');
+        var pass = this.getAttribute('data-pass');
+
+        if (emailInput && passwordInput) {
+          emailInput.value = email;
+          passwordInput.value = pass;
+
+          emailInput.classList.add('is-valid');
+          passwordInput.classList.add('is-valid');
+          setTimeout(function () {
+            emailInput.classList.remove('is-valid');
+            passwordInput.classList.remove('is-valid');
+          }, 1200);
+        }
+      });
+    });
   });
 </script>
 {% endblock %}
