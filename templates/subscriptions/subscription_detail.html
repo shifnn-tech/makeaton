@@ -4,16 +4,58 @@
 
 {% block content %}
 <div class="container py-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
     <div>
       <a href="{% url 'subscriptions:list' %}" class="small text-decoration-none">&larr; Back to Subscriptions</a>
       <h2 class="fw-bold mb-0 mt-1">{{ subscription.number }}</h2>
       <p class="text-muted mb-0">Customer: <strong>{{ subscription.customer.email }}</strong></p>
     </div>
-    <span class="badge fs-6 px-3 py-2 {% if subscription.status == 'Active' %}bg-success{% elif subscription.status == 'Draft' %}bg-secondary{% elif subscription.status == 'Quotation' %}bg-info text-dark{% elif subscription.status == 'Confirmed' %}bg-primary{% else %}bg-dark{% endif %}">
-      {{ subscription.status }}
-    </span>
+    
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge fs-6 px-3 py-2 {% if subscription.status == 'Active' %}bg-success{% elif subscription.status == 'Draft' %}bg-secondary{% elif subscription.status == 'Quotation' %}bg-info text-dark{% elif subscription.status == 'Confirmed' %}bg-primary{% else %}bg-dark{% endif %}">
+        {{ subscription.status }}
+      </span>
+
+      {% if user.role == 'admin' or user.role == 'staff' %}
+        <!-- Generate Invoice Button for Staff/Admin -->
+        {% if subscription.status == 'Active' or subscription.status == 'Confirmed' %}
+          <form method="post" action="{% url 'subscriptions:generate_invoice' subscription.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-primary btn-sm">
+              <svg width="14" height="14" fill="currentColor" class="bi me-1" viewBox="0 0 16 16">
+                <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+              </svg>
+              Generate Invoice
+            </button>
+          </form>
+        {% endif %}
+      {% endif %}
+    </div>
   </div>
+
+  {% if user.role == 'admin' or user.role == 'staff' %}
+    {% if allowed_transitions %}
+      <!-- Status Transition Control Panel for Staff / Admin -->
+      <div class="card bg-light border mb-4 shadow-sm">
+        <div class="card-body py-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <div>
+            <strong class="text-secondary small text-uppercase">Status Actions (FSM):</strong>
+            <span class="small text-muted ms-2">Current state is <strong>{{ subscription.status }}</strong>. Advance to:</span>
+          </div>
+          <div class="d-flex gap-2">
+            {% for target_state in allowed_transitions %}
+              <form method="post" action="{% url 'subscriptions:change_status' subscription.id target_state %}" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm {% if target_state == 'Active' %}btn-success{% elif target_state == 'Confirmed' %}btn-primary{% elif target_state == 'Quotation' %}btn-info text-dark{% elif target_state == 'Closed' %}btn-outline-danger{% else %}btn-secondary{% endif %}">
+                  Transition to &ldquo;{{ target_state }}&rdquo;
+                </button>
+              </form>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  {% endif %}
 
   <div class="row g-4 mb-4">
     <div class="col-md-6">
@@ -62,12 +104,71 @@
             </tr>
           {% empty %}
             <tr>
-              <td colspan="5" class="text-center text-muted py-4">No itemized lines attached to this subscription.</td>
+              <td>{{ subscription.plan.name }} (Recurring Subscription Base)</td>
+              <td>1</td>
+              <td>${{ subscription.plan.price }}</td>
+              <td>Standard (18%)</td>
+              <td class="text-end">${{ subscription.plan.price }}</td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
+
+  <!-- Related Invoices Card -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-light fw-bold d-flex justify-content-between align-items-center">
+      <span>Billing Invoices for this Subscription</span>
+      <span class="badge bg-secondary">{{ invoices.count }}</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Invoice #</th>
+            <th>Period</th>
+            <th>Due Date</th>
+            <th>Total</th>
+            <th>Balance Due</th>
+            <th>Status</th>
+            <th class="text-end">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for inv in invoices %}
+            <tr>
+              <td class="fw-semibold">
+                <a href="{% url 'billing:detail' inv.id %}" class="text-decoration-none">
+                  {{ inv.number }}
+                </a>
+              </td>
+              <td>{{ inv.period_start|date:"M d" }} &ndash; {{ inv.period_end|date:"M d, Y" }}</td>
+              <td>{{ inv.due_date|date:"M d, Y" }}</td>
+              <td>${{ inv.total }}</td>
+              <td>
+                <span class="fw-bold {% if inv.balance_due > 0 %}text-danger{% else %}text-success{% endif %}">
+                  ${{ inv.balance_due }}
+                </span>
+              </td>
+              <td>
+                <span class="badge {% if inv.status == 'Paid' %}bg-success{% elif inv.status == 'Confirmed' %}bg-primary{% else %}bg-secondary{% endif %}">
+                  {{ inv.status }}
+                </span>
+              </td>
+              <td class="text-end">
+                <a href="{% url 'billing:detail' inv.id %}" class="btn btn-sm btn-outline-primary">View</a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">No invoices billed for this subscription yet.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 {% endblock %}

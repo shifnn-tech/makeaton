@@ -97,13 +97,19 @@ class AuthViewsTests(TestCase):
         response = self.client.get(reverse("accounts:login"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Sign In")
-        self.assertContains(response, "Welcome back")
+        self.assertContains(response, "Customer Portal")
+        self.assertContains(response, "Internal Management")
         self.assertContains(response, "id_email")
         self.assertContains(response, "id_password")
         self.assertContains(response, "id_remember_me")
         self.assertContains(response, "togglePasswordBtn")
         self.assertContains(response, reverse("accounts:password_reset"))
         self.assertContains(response, reverse("accounts:signup"))
+
+    def test_staff_login_page_renders(self):
+        response = self.client.get(reverse("accounts:login_staff"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Internal Management")
 
     def test_login_success(self):
         response = self.client.post(reverse("accounts:login"), {

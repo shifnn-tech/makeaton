@@ -16,9 +16,10 @@ urlpatterns = [
     # Landing / Home
     path("", views.home_view, name="home"),
 
-    # Authentication
+    # Authentication (Customer & Staff/Admin portals)
     path("signup/", views.signup_view, name="signup"),
     path("login/", views.login_view, name="login"),
+    path("login/staff/", views.login_view, {"portal": "staff"}, name="login_staff"),
     path("logout/", views.logout_view, name="logout"),
 
     # Admin: Create staff user

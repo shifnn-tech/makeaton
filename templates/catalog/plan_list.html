@@ -13,25 +13,33 @@
     {% for plan in plans %}
       <div class="col">
         <div class="card h-100 shadow-sm border-top-primary">
-          <div class="card-body p-4 text-center">
+          <div class="card-body p-4 text-center d-flex flex-column">
             <h5 class="card-title fw-bold">{{ plan.name }}</h5>
             <div class="my-3">
               <span class="display-5 fw-bold text-primary-brand">${{ plan.price }}</span>
               <span class="text-muted">/ {{ plan.get_billing_period_display }}</span>
             </div>
-            <ul class="list-unstyled text-muted small my-4 text-start">
+            <ul class="list-unstyled text-muted small my-4 text-start flex-grow-1">
               <li class="mb-2">&check; Min. Quantity: {{ plan.min_quantity }}</li>
               <li class="mb-2">&check; Renewable: {{ plan.renewable|yesno:"Yes,No" }}</li>
               <li class="mb-2">&check; Pausable: {{ plan.pausable|yesno:"Yes,No" }}</li>
               <li class="mb-2">&check; Cancel anytime: {{ plan.closable|yesno:"Yes,No" }}</li>
             </ul>
-            {% if user.is_authenticated and user.role == 'customer' %}
-              <button class="btn btn-primary w-100 py-2" disabled>Subscribe (Feature Stub)</button>
-            {% elif not user.is_authenticated %}
-              <a href="{% url 'accounts:signup' %}" class="btn btn-outline-primary w-100 py-2">Sign Up to Subscribe</a>
-            {% else %}
-              <span class="badge bg-secondary p-2 d-block">Admin/Staff Preview</span>
-            {% endif %}
+
+            <div class="mt-auto">
+              {% if user.is_authenticated %}
+                <form method="post" action="{% url 'subscriptions:subscribe' plan.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
+                    Subscribe Now
+                  </button>
+                </form>
+              {% else %}
+                <a href="{% url 'accounts:login' %}?next={% url 'catalog:plan_list' %}" class="btn btn-outline-primary w-100 py-2 fw-semibold">
+                  Sign In to Subscribe
+                </a>
+              {% endif %}
+            </div>
           </div>
         </div>
       </div>
