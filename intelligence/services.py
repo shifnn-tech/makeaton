@@ -213,3 +213,271 @@ def get_revenue_trend(months: int = 12) -> dict:
         "partial_month_label": today.strftime("%b %Y"),
         "has_partial_month": partial_revenue > Decimal("0.00"),
     }
+
+
+def forecast_revenue(months_ahead: int = 3) -> dict:
+    """
+    Projects revenue for the next N months using a linear regression trend
+    blended with a 3-month Simple Moving Average (SMA).
+
+    Assumptions:
+      - Uses completed monthly historical payments to avoid incomplete cycle bias.
+      - Fits a linear slope (y = mx + c) and blends with recent moving average.
+      - Projects next 3 calendar months with non-negative constraints.
+
+    Returns:
+        dict: {
+            'forecast': list of dicts [{'label': 'Mon YYYY', 'month_key': 'YYYY-MM', 'projected_revenue': Decimal}],
+            'total_projected': Decimal,
+            'avg_monthly_projection': Decimal,
+            'combined_chart_labels': list of str,
+            'historical_series': list of (float or None),
+            'forecast_series': list of (float or None),
+            'assumptions': str,
+        }
+    """
+    trend_data = get_revenue_trend(months=12)
+    historical_entries = trend_data["trend"]
+    y_vals = [float(x["revenue"]) for x in historical_entries]
+    n = len(y_vals)
+
+    forecast_items = []
+    total_projected = Decimal("0.00")
+
+    # Determine starting month for future projections
+    if historical_entries:
+        last_key = historical_entries[-1]["month_key"]  # e.g. "2026-09"
+        y_int, m_int = int(last_key.split("-")[0]), int(last_key.split("-")[1])
+    else:
+        today = timezone.localdate()
+        y_int, m_int = today.year, today.month
+
+    if n >= 2:
+        # Linear Regression: y = m*x + c
+        x_vals = list(range(1, n + 1))
+        mean_x = sum(x_vals) / n
+        mean_y = sum(y_vals) / n
+
+        num = sum((x_vals[i] - mean_x) * (y_vals[i] - mean_y) for i in range(n))
+        den = sum((x_vals[i] - mean_x) ** 2 for i in range(n))
+        slope = num / den if den != 0 else 0.0
+        intercept = mean_y - slope * mean_x
+
+        # 3-month moving average of most recent observations
+        recent_window = y_vals[-3:] if n >= 3 else y_vals
+        sma_recent = sum(recent_window) / len(recent_window)
+
+        for step in range(1, months_ahead + 1):
+            future_x = n + step
+            linear_estimate = slope * future_x + intercept
+            # 70% linear trend + 30% moving average smoothing
+            blended = max(0.0, (0.7 * linear_estimate) + (0.3 * sma_recent))
+            proj_decimal = quantize_currency(Decimal(str(round(blended, 2))))
+            total_projected += proj_decimal
+
+            # Advance calendar month
+            m_target = m_int + step
+            y_target = y_int + ((m_target - 1) // 12)
+            m_normalized = ((m_target - 1) % 12) + 1
+            step_date = date(y_target, m_normalized, 1)
+
+            forecast_items.append({
+                "label": step_date.strftime("%b %Y"),
+                "month_key": step_date.strftime("%Y-%m"),
+                "projected_revenue": proj_decimal,
+                "step": step,
+            })
+    elif n == 1:
+        # Fallback with 1 data point: flat projection
+        single_val = quantize_currency(Decimal(str(y_vals[0])))
+        for step in range(1, months_ahead + 1):
+            m_target = m_int + step
+            y_target = y_int + ((m_target - 1) // 12)
+            m_normalized = ((m_target - 1) % 12) + 1
+            step_date = date(y_target, m_normalized, 1)
+            total_projected += single_val
+            forecast_items.append({
+                "label": step_date.strftime("%b %Y"),
+                "month_key": step_date.strftime("%Y-%m"),
+                "projected_revenue": single_val,
+                "step": step,
+            })
+    else:
+        # Fallback when 0 payments: use MRR as base
+        mrr_fallback = get_mrr()["mrr"]
+        for step in range(1, months_ahead + 1):
+            m_target = m_int + step
+            y_target = y_int + ((m_target - 1) // 12)
+            m_normalized = ((m_target - 1) % 12) + 1
+            step_date = date(y_target, m_normalized, 1)
+            total_projected += mrr_fallback
+            forecast_items.append({
+                "label": step_date.strftime("%b %Y"),
+                "month_key": step_date.strftime("%Y-%m"),
+                "projected_revenue": mrr_fallback,
+                "step": step,
+            })
+
+    avg_monthly = quantize_currency(total_projected / Decimal(str(months_ahead))) if months_ahead > 0 else Decimal("0.00")
+
+    # Build connected Chart.js dataset:
+    # Historical curve ends at last historical month;
+    # Forecast curve connects from last historical month into projected months.
+    combined_labels = [x["label"] for x in historical_entries] + [x["label"] for x in forecast_items]
+    historical_series = [float(x["revenue"]) for x in historical_entries] + [None] * len(forecast_items)
+    
+    forecast_series = [None] * (len(historical_entries) - 1 if len(historical_entries) > 0 else 0)
+    if historical_entries:
+        forecast_series.append(float(historical_entries[-1]["revenue"]))  # Anchor to connect lines
+    forecast_series.extend([float(x["projected_revenue"]) for x in forecast_items])
+
+    return {
+        "forecast": forecast_items,
+        "total_projected": quantize_currency(total_projected),
+        "avg_monthly_projection": avg_monthly,
+        "combined_chart_labels": combined_labels,
+        "historical_series": historical_series,
+        "forecast_series": forecast_series,
+        "assumptions": (
+            "Assumptions: Projects the next 3 months using a blended linear regression trend (70% weight) "
+            "and 3-month Simple Moving Average (30% weight) over completed historical billing cycles. "
+            "Assumes current subscriber retention patterns remain stable."
+        ),
+    }
+
+
+def get_subscription_health_scores(status_filter: str = None) -> dict:
+    """
+    Computes Health Score (0-100) and Churn Risk (High / Medium / Low) per subscription.
+
+    Health Score Components (0-100 points):
+      1. On-Time Payment Rate (0-50 pts): Ratio of invoices paid on time vs total invoices.
+      2. Overdue Penalty (0-30 pts): 30 pts base minus 15 pts per active overdue invoice.
+      3. Subscriber Tenure / Age (0-20 pts): 2 pts per active month up to 20 pts (10+ months).
+
+    Churn Risk Rules:
+      - High Risk:   Score < 50, OR >= 2 overdue invoices, OR status is Closed.
+      - Medium Risk: Score 50 to 74, OR exactly 1 overdue invoice.
+      - Low Risk:    Score >= 75 AND 0 overdue invoices.
+
+    Optimized with database aggregation (Count, Q) in a single query.
+    Returns subscriptions sorted by HIGHEST RISK first.
+    """
+    from django.db.models import Count, Q
+
+    today = timezone.localdate()
+
+    qs = Subscription.objects.select_related("customer", "plan")
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+
+    # Database-level aggregate subqueries: eliminates N+1 loops!
+    annotated_subs = qs.annotate(
+        total_invoices_count=Count("invoices", distinct=True),
+        paid_invoices_count=Count(
+            "invoices",
+            filter=Q(invoices__status=Invoice.STATUS_PAID),
+            distinct=True,
+        ),
+        overdue_invoices_count=Count(
+            "invoices",
+            filter=Q(invoices__due_date__lt=today) & ~Q(invoices__status=Invoice.STATUS_PAID),
+            distinct=True,
+        ),
+    )
+
+    scored_list = []
+    high_count = 0
+    medium_count = 0
+    low_count = 0
+    total_score_sum = 0
+
+    for sub in annotated_subs:
+        total_inv = sub.total_invoices_count
+        paid_inv = sub.paid_invoices_count
+        overdue_inv = sub.overdue_invoices_count
+
+        # 1. On-time payment ratio (0 - 50 points)
+        if total_inv > 0:
+            on_time_ratio = paid_inv / total_inv
+            score_on_time = on_time_ratio * 50.0
+        else:
+            # New subscriber with no invoices yet: neutral baseline of 40/50
+            on_time_ratio = 1.0
+            score_on_time = 40.0
+
+        # 2. Overdue penalty (0 - 30 points)
+        score_overdue = max(0.0, 30.0 - (overdue_inv * 15.0))
+
+        # 3. Tenure age (0 - 20 points)
+        start_d = sub.start_date or today
+        age_days = max(0, (today - start_d).days)
+        age_months = max(1, age_days // 30)
+        score_age = min(20.0, age_months * 2.0)
+
+        # Total combined score clamped between 0 and 100
+        raw_score = score_on_time + score_overdue + score_age
+        health_score = int(round(min(100.0, max(0.0, raw_score))))
+        total_score_sum += health_score
+
+        # Churn Risk Label Assignment
+        is_closed = (sub.status == Subscription.STATUS_CLOSED)
+        if is_closed or health_score < 50 or overdue_inv >= 2:
+            risk_label = "High"
+            risk_badge_class = "risk-badge-high"
+            risk_rank = 1  # Top priority for action
+            high_count += 1
+            risk_reason = "Multiple overdue invoices or critical health score (<50)" if not is_closed else "Subscription closed/cancelled"
+        elif health_score < 75 or overdue_inv == 1:
+            risk_label = "Medium"
+            risk_badge_class = "risk-badge-medium"
+            risk_rank = 2
+            medium_count += 1
+            risk_reason = "1 overdue invoice or moderate payment delays"
+        else:
+            risk_label = "Low"
+            risk_badge_class = "risk-badge-low"
+            risk_rank = 3
+            low_count += 1
+            risk_reason = "Consistent on-time payments and good contract tenure"
+
+        scored_list.append({
+            "id": sub.id,
+            "number": sub.number,
+            "customer_email": sub.customer.email,
+            "customer_name": sub.customer.get_full_name() or sub.customer.email,
+            "plan_name": sub.plan.name if sub.plan else "N/A",
+            "plan_price": sub.plan.price if sub.plan else Decimal("0.00"),
+            "status": sub.status,
+            "start_date": sub.start_date,
+            "age_months": age_months,
+            "total_invoices": total_inv,
+            "paid_invoices": paid_inv,
+            "overdue_invoices": overdue_inv,
+            "health_score": health_score,
+            "risk_label": risk_label,
+            "risk_badge_class": risk_badge_class,
+            "risk_rank": risk_rank,
+            "risk_reason": risk_reason,
+        })
+
+    # Sort strictly by HIGHEST RISK first (rank 1 -> 2 -> 3), then lowest health score
+    scored_list.sort(key=lambda s: (s["risk_rank"], s["health_score"]))
+
+    total_subs = len(scored_list)
+    avg_score = round(total_score_sum / total_subs, 1) if total_subs > 0 else 0.0
+
+    return {
+        "subscriptions": scored_list,
+        "total_count": total_subs,
+        "high_risk_count": high_count,
+        "medium_risk_count": medium_count,
+        "low_risk_count": low_count,
+        "avg_health_score": avg_score,
+        "assumptions": (
+            "Health score (0-100) combines: On-Time Payment Rate (up to 50 pts), "
+            "Overdue Penalty (-15 pts per unpaid bill, up to 30 pts), and Tenure Age "
+            "(2 pts per active month up to 20 pts). Churn risk is flagged as High if score < 50 "
+            "or 2+ invoices are past due."
+        ),
+    }

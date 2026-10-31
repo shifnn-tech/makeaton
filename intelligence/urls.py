@@ -12,4 +12,5 @@ app_name = "intelligence"
 
 urlpatterns = [
     path("", views.revenue_dashboard_view, name="dashboard"),
+    path("forecast/", views.forecast_health_view, name="forecast"),
 ]
