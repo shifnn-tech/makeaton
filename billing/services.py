@@ -35,7 +35,8 @@ def generate_invoice(
     period_end=None,
     dry_run: bool = False,
     discount: Discount = None,
-    status: str = Invoice.STATUS_DRAFT,
+    status: str = Invoice.STATUS_CONFIRMED,
+    raise_on_duplicate: bool = False,
 ) -> Invoice:
     """
     Generates an itemized Invoice and InvoiceLines for a given Subscription.
@@ -49,13 +50,16 @@ def generate_invoice(
         dry_run (bool): If True, computes the complete invoice and lines in-memory
             without persisting any records to the database.
         discount (Discount, optional): Eligible promotional discount to apply.
-        status (str): Initial invoice status (defaults to DRAFT).
+        status (str): Initial invoice status (defaults to CONFIRMED).
+        raise_on_duplicate (bool): If True, raises DuplicateInvoiceError when an
+            invoice already exists for (subscription, period_start); otherwise returns
+            the existing invoice idempotently.
 
     Returns:
         Invoice: The generated Invoice instance (persisted if dry_run=False, in-memory if dry_run=True).
 
     Raises:
-        DuplicateInvoiceError: If an invoice already exists for (subscription, period_start).
+        DuplicateInvoiceError: If raise_on_duplicate=True and an invoice already exists.
     """
     # --------------------------------------------------------------------------
     # 1. Determine Billing Period Dates
@@ -66,10 +70,13 @@ def generate_invoice(
     # --------------------------------------------------------------------------
     # 2. Idempotency Guard: Prevent Duplicate Invoicing for the Same Period
     # --------------------------------------------------------------------------
-    if Invoice.objects.filter(subscription=subscription, period_start=period_start).exists():
+    existing_invoice = Invoice.objects.filter(subscription=subscription, period_start=period_start).first()
+    if existing_invoice:
         msg = f"Invoice already exists for subscription {subscription.number} and period start {period_start}."
         logger.warning(msg)
-        raise DuplicateInvoiceError(msg)
+        if raise_on_duplicate:
+            raise DuplicateInvoiceError(msg)
+        return existing_invoice
 
     # Calculate period_end if not explicitly provided
     if period_end is None:

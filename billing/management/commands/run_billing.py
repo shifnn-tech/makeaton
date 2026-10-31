@@ -69,7 +69,7 @@ class Command(BaseCommand):
         for sub in queryset:
             self.stdout.write(f" -> Processing {sub.number} ({sub.customer.email})...")
             try:
-                invoice = generate_invoice(sub, dry_run=dry_run)
+                invoice = generate_invoice(sub, dry_run=dry_run, raise_on_duplicate=True)
                 created_count += 1
                 if dry_run:
                     self.stdout.write(

@@ -104,6 +104,37 @@ def invoice_detail_view(request, invoice_id: int):
     return render(request, "billing/detail.html", {"invoice": invoice})
 
 
+@login_required
+def invoice_pay_view(request, invoice_id: int):
+    """
+    Processes online payment for an invoice (Customer portal or Staff).
+    Allows customers to pay their own invoice, or staff/admin to settle the invoice.
+    """
+    queryset = Invoice.objects.select_related("subscription__customer", "subscription__plan")
+    scoped_queryset = filter_by_user(queryset, request.user, user_field="subscription__customer")
+    invoice = get_object_or_404(scoped_queryset, id=invoice_id)
+
+    if invoice.balance_due <= Decimal("0.00"):
+        messages.info(request, f"Invoice {invoice.number} is already fully paid.")
+        return redirect("billing:detail", invoice_id=invoice.id)
+
+    if request.method == "POST":
+        amount_to_pay = invoice.balance_due
+        payment = Payment.objects.create(
+            invoice=invoice,
+            amount=amount_to_pay,
+            method=Payment.METHOD_CARD,
+            recorded_by=request.user,
+            date=timezone.localdate(),
+        )
+        messages.success(
+            request,
+            f"Payment of ${payment.amount:.2f} processed successfully! Invoice {invoice.number} marked as Paid."
+        )
+
+    return redirect("billing:detail", invoice_id=invoice.id)
+
+
 @role_required("admin", "staff")
 def record_payment_view(request, invoice_id: int):
     """

@@ -18,7 +18,8 @@ urlpatterns = [
 
     # Invoice detail & actions
     path("<int:invoice_id>/", views.invoice_detail_view, name="detail"),
-    path("<int:invoice_id>/pay/", views.record_payment_view, name="record_payment"),
+    path("<int:invoice_id>/pay/", views.invoice_pay_view, name="pay"),
+    path("<int:invoice_id>/record-payment/", views.record_payment_view, name="record_payment"),
     path("<int:invoice_id>/confirm/", views.confirm_invoice_view, name="confirm"),
     path("<int:invoice_id>/pdf/", views.invoice_pdf_view, name="pdf"),
 

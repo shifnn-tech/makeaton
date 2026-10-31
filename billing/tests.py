@@ -3,13 +3,15 @@ billing/tests.py
 ================
 Purpose:
     Unit tests for billing models, validations, dynamic financial calculations,
-    status transitions, invoice generation service, and management commands.
+    Invoice unique constraints, status transitions, Payment validations,
+    invoice generation service, customer portal payments, and management commands.
 """
 
 from io import StringIO
 from decimal import Decimal
 from datetime import date, timedelta
-from django.test import TestCase
+from django.test import TestCase, Client
+from django.urls import reverse
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
@@ -207,6 +209,32 @@ class BillingModelTests(TestCase):
         self.assertEqual(inv.amount_paid, Decimal("100.00"))
         self.assertEqual(inv.balance_due, Decimal("0.00"))
         self.assertEqual(inv.status, Invoice.STATUS_PAID)
+
+    def test_payment_amount_validation(self):
+        """Verifies payment clean validation on zero and overpayment, and marks confirmed invoice paid."""
+        inv = Invoice.objects.create(
+            subscription=self.sub,
+            period_start=self.today,
+            period_end=self.today + timedelta(days=30),
+            total=Decimal("100.00"),
+            due_date=self.today + timedelta(days=14),
+            status=Invoice.STATUS_CONFIRMED,
+        )
+
+        with self.assertRaises(ValidationError):
+            p = Payment(invoice=inv, amount=Decimal("0.00"))
+            p.clean()
+
+        # Payment > remaining balance must fail
+        with self.assertRaises(ValidationError):
+            p = Payment(invoice=inv, amount=Decimal("150.00"))
+            p.clean()
+
+        # Exact payment succeeds and marks invoice as Paid
+        p = Payment.objects.create(invoice=inv, amount=Decimal("100.00"))
+        inv.refresh_from_db()
+        self.assertEqual(inv.status, Invoice.STATUS_PAID)
+        self.assertEqual(inv.balance_due, Decimal("0.00"))
 
     def test_status_transitions_confirm_and_mark_paid(self):
         """Verifies confirm() and mark_paid() enforce state transitions and raise ValidationError on illegal moves."""
@@ -417,7 +445,7 @@ class BillingServiceTests(TestCase):
         generate_invoice(self.sub, period_start=start)
 
         with self.assertRaises(DuplicateInvoiceError):
-            generate_invoice(self.sub, period_start=start)
+            generate_invoice(self.sub, period_start=start, raise_on_duplicate=True)
 
     def test_generate_invoice_with_discount_applied_before_tax(self):
         """
@@ -786,3 +814,48 @@ class BillingViewTests(TestCase):
         self.assertEqual(resp.status_code, 200)
         content_type = resp.headers.get("Content-Type", "")
         self.assertTrue("application/pdf" in content_type or "text/html" in content_type)
+
+
+class BillingServiceAndPaymentViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.customer = User.objects.create_user(
+            email="custpay@example.com",
+            password="SecurePassword@123",
+            role=User.ROLE_CUSTOMER,
+        )
+        self.plan = Plan.objects.create(
+            name="Cloud Gold",
+            price=Decimal("120.00"),
+            billing_period=Plan.PERIOD_MONTHLY,
+        )
+        self.sub = Subscription.objects.create(
+            customer=self.customer,
+            plan=self.plan,
+            status=Subscription.STATUS_ACTIVE,
+            next_invoice_date=date.today(),
+        )
+
+    def test_generate_invoice_service(self):
+        invoice = generate_invoice(self.sub)
+        self.assertIsNotNone(invoice)
+        self.assertEqual(invoice.subscription, self.sub)
+        self.assertGreater(invoice.total, Decimal("0.00"))
+        self.assertEqual(invoice.status, Invoice.STATUS_CONFIRMED)
+
+        # Idempotency check: running with the same period_start returns existing invoice
+        inv2 = generate_invoice(self.sub, period_start=invoice.period_start)
+        self.assertEqual(inv2.id, invoice.id)
+
+    def test_customer_can_pay_invoice_via_portal(self):
+        self.client.login(email="custpay@example.com", password="SecurePassword@123")
+        invoice = generate_invoice(self.sub)
+
+        # Post payment
+        response = self.client.post(reverse("billing:pay", args=[invoice.id]))
+        self.assertEqual(response.status_code, 302)
+
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.status, Invoice.STATUS_PAID)
+        self.assertEqual(invoice.balance_due, Decimal("0.00"))
+        self.assertEqual(invoice.payments.count(), 1)
