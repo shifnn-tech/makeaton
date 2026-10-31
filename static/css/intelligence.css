@@ -28,7 +28,7 @@ Purpose:
 
 .intelligence-nav .nav-link:hover {
     color: var(--primary-color);
-    border-bottom-color: rgba(37, 99, 235, 0.3);
+    border-bottom-color: rgba(26, 28, 28, 0.25);
 }
 
 .intelligence-nav .nav-link.active {

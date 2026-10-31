@@ -1,16 +1,23 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Sign In - BrightLoop{% endblock %}
+
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+{% endblock %}
+
+{% block body_class %}is-auth-page{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center align-items-center py-4 py-md-5">
   <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4">
     
-    <!-- Modern SaaS Login Card -->
-    <div class="card shadow-sm border border-light-subtle rounded-4 overflow-hidden bg-white">
+    <!-- Modern Engineered Login Card (24px radius, 1px border) -->
+    <div class="card overflow-hidden">
       
       <!-- Portal Selector Navigation Tabs -->
-      <div class="card-header bg-light border-bottom p-2">
+      <div class="card-header border-bottom p-2 bg-transparent">
         <ul class="nav nav-pills nav-fill" id="portalTabs" role="tablist">
           <li class="nav-item" role="presentation">
             <button class="nav-link py-2 fw-semibold {% if portal != 'staff' %}active{% endif %}" 
@@ -34,7 +41,7 @@
                 <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0z"/>
                 <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8zm8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1z"/>
               </svg>
-              Staff & Admin
+              Staff &amp; Admin
             </button>
           </li>
         </ul>
@@ -47,24 +54,24 @@
         <div class="text-center mb-4">
           <div class="d-inline-flex align-items-center justify-content-center text-white rounded-circle shadow-sm mb-3" 
                id="brandBadge"
-               style="width: 56px; height: 56px; background-color: {% if portal == 'staff' %}#7c3aed{% else %}#2563eb{% endif %};">
+               style="width: 56px; height: 56px; background-color: #000000;">
             <span class="fw-bold fs-4">BL</span>
           </div>
 
           <!-- Customer Portal Header -->
           <div id="customerHeader" class="{% if portal == 'staff' %}d-none{% endif %}">
-            <h1 class="h4 fw-bold mb-1 text-dark">Customer Portal</h1>
+            <h1 class="h4 fw-bold tracking-tight mb-1 text-dark">Customer Portal</h1>
             <p class="text-muted small mb-0">Sign in to manage your subscriptions and invoices</p>
           </div>
 
           <!-- Staff / Admin Portal Header -->
           <div id="staffHeader" class="{% if portal != 'staff' %}d-none{% endif %}">
             <div class="mb-1">
-              <span class="badge bg-danger me-1">Admin</span>
-              <span class="badge text-white" style="background-color: #7c3aed;">Staff</span>
+              <span class="badge bg-dark text-white me-1">Admin</span>
+              <span class="badge bg-secondary text-white">Staff</span>
             </div>
-            <h1 class="h4 fw-bold mb-1 text-dark">Internal Management</h1>
-            <p class="text-muted small mb-0">Operations, contracts, billing runner & analytics</p>
+            <h1 class="h4 fw-bold tracking-tight mb-1 text-dark">Internal Management</h1>
+            <p class="text-muted small mb-0">Operations, contracts, billing runner &amp; analytics</p>
           </div>
         </div>
 
@@ -80,12 +87,12 @@
               </svg>
               Quick Demo Fill
             </span>
-            <span class="badge bg-secondary-subtle text-secondary-emphasis" style="font-size: 0.65rem;">Seed Accounts</span>
+            <span class="badge bg-light text-dark border" style="font-size: 0.65rem;">Seed Accounts</span>
           </div>
 
           <!-- Customer Demo Pill -->
           <div id="customerDemoPills" class="{% if portal == 'staff' %}d-none{% endif %}">
-            <button type="button" class="btn btn-sm btn-outline-primary py-1 px-2 demo-btn" 
+            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 demo-btn" 
                     data-email="customer1@brightloop.local" 
                     data-pass="SecurePassword@123">
               Fill Customer (customer1)
@@ -94,13 +101,12 @@
 
           <!-- Staff & Admin Demo Pills -->
           <div id="staffDemoPills" class="d-flex gap-2 {% if portal != 'staff' %}d-none{% endif %}">
-            <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2 demo-btn" 
+            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 demo-btn" 
                     data-email="admin@brightloop.local" 
                     data-pass="SecurePassword@123">
               Fill Admin
             </button>
-            <button type="button" class="btn btn-sm py-1 px-2 demo-btn text-white" 
-                    style="background-color: #7c3aed; border-color: #7c3aed;"
+            <button type="button" class="btn btn-sm btn-outline-secondary py-1 px-2 demo-btn" 
                     data-email="staff1@brightloop.local" 
                     data-pass="SecurePassword@123">
               Fill Staff
@@ -139,7 +145,7 @@
               <label for="{{ form.password.id_for_label }}" class="form-label fw-semibold small text-secondary mb-0">
                 Password
               </label>
-              <a href="{% url 'accounts:password_reset' %}" class="small text-primary text-decoration-none fw-medium">
+              <a href="{% url 'accounts:password_reset' %}" class="small text-dark text-decoration-none fw-medium">
                 Forgot password?
               </a>
             </div>
@@ -181,7 +187,7 @@
           </div>
 
           <!-- Submit Button with Interactive Loading State -->
-          <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm" id="loginSubmitBtn">
+          <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold" id="loginSubmitBtn">
             <span id="btnContent">Sign In</span>
           </button>
         </form>
@@ -189,9 +195,9 @@
       </div>
 
       <!-- Card Footer with Sign Up Link -->
-      <div class="card-footer bg-light border-top py-3 text-center" id="signupFooter">
+      <div class="card-footer bg-transparent border-top py-3 text-center" id="signupFooter">
         <span class="small text-muted">Don't have an account yet?</span>
-        <a href="{% url 'accounts:signup' %}" class="small text-primary fw-semibold text-decoration-none ms-1">
+        <a href="{% url 'accounts:signup' %}" class="small text-dark fw-semibold text-decoration-none ms-1">
           Sign up as Customer
         </a>
       </div>
@@ -207,12 +213,10 @@
   function switchPortal(portal) {
     var customerTab = document.getElementById('customer-tab');
     var staffTab = document.getElementById('staff-tab');
-    var brandBadge = document.getElementById('brandBadge');
     var customerHeader = document.getElementById('customerHeader');
     var staffHeader = document.getElementById('staffHeader');
     var customerDemoPills = document.getElementById('customerDemoPills');
     var staffDemoPills = document.getElementById('staffDemoPills');
-    var submitBtn = document.getElementById('loginSubmitBtn');
     var signupFooter = document.getElementById('signupFooter');
 
     if (portal === 'staff') {
@@ -222,10 +226,6 @@
       staffHeader.classList.remove('d-none');
       customerDemoPills.classList.add('d-none');
       staffDemoPills.classList.remove('d-none');
-      brandBadge.style.backgroundColor = '#7c3aed';
-      submitBtn.classList.remove('btn-primary');
-      submitBtn.style.backgroundColor = '#7c3aed';
-      submitBtn.style.borderColor = '#7c3aed';
       signupFooter.innerHTML = '<span class="small text-muted">Staff accounts are managed by system administrators.</span>';
     } else {
       staffTab.classList.remove('active');
@@ -234,11 +234,7 @@
       customerHeader.classList.remove('d-none');
       staffDemoPills.classList.add('d-none');
       customerDemoPills.classList.remove('d-none');
-      brandBadge.style.backgroundColor = '#2563eb';
-      submitBtn.style.backgroundColor = '';
-      submitBtn.style.borderColor = '';
-      submitBtn.classList.add('btn-primary');
-      signupFooter.innerHTML = '<span class="small text-muted">Don\'t have an account yet?</span><a href="{% url "accounts:signup" %}" class="small text-primary fw-semibold text-decoration-none ms-1">Sign up as Customer</a>';
+      signupFooter.innerHTML = '<span class="small text-muted">Don\'t have an account yet?</span><a href="{% url "accounts:signup" %}" class="small text-dark fw-semibold text-decoration-none ms-1">Sign up as Customer</a>';
     }
   }
 

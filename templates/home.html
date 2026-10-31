@@ -1,173 +1,828 @@
 {% extends "base.html" %}
+{% load static humanize catalog_tags %}
 
-{% block title %}Home - BrightLoop{% endblock %}
+{% block title %}
+  {% if not user.is_authenticated %}
+    BrightLoop - Subscription Management & Billing System
+  {% else %}
+    Home - BrightLoop
+  {% endif %}
+{% endblock %}
+
+{% block body_class %}{% if not user.is_authenticated %}is-public-visitor{% endif %}{% endblock %}
 
 {% block content %}
-<div class="container py-4">
+{% if not user.is_authenticated %}
+  <!-- ========================================================================
+       BRIGHTLOOP PUBLIC LANDING PAGE (DESIGN.md - 24px cards, offline)
+       ======================================================================== -->
 
-  {% if not user.is_authenticated %}
-    <!-- ====================================================================
-         ANONYMOUS / GUEST VISITOR WELCOME SCREEN
-         ==================================================================== -->
-    <div class="p-5 mb-4 bg-light rounded-3 shadow-sm border text-center">
-      <div class="container-fluid py-5">
-        <h1 class="display-5 fw-bold text-primary-brand">BrightLoop Subscriptions</h1>
-        <p class="col-md-8 mx-auto fs-5 text-muted">
-          A modular, offline-first subscription and billing engine built with Django & Bootstrap 5.
-          Manage customer recurring plans, itemized quotes, invoices, and automated lifecycle billing.
-        </p>
-        <div class="d-flex justify-content-center gap-3 mt-4">
-          <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-lg px-4 shadow">Get Started (Customer)</a>
-          <a href="{% url 'accounts:login' %}" class="btn btn-outline-secondary btn-lg px-4">Sign In</a>
-          <a href="{% url 'catalog:plan_list' %}" class="btn btn-outline-primary btn-lg px-4">View Plans</a>
+  <!-- 1. TopNavBar -->
+  <nav class="landing-navbar py-3">
+    <div class="landing-container d-flex justify-content-between align-items-center">
+      <!-- Brand Logo -->
+      <a class="navbar-brand d-flex align-items-center text-dark text-decoration-none" href="{% url 'accounts:home' %}">
+        <span class="fs-4 fw-bold tracking-tight">BrightLoop</span>
+      </a>
+
+      <!-- Desktop Nav Links -->
+      <div class="d-none d-md-flex align-items-center gap-4">
+        <a class="landing-nav-link text-dark fw-bold border-bottom border-dark border-2 pb-1" href="#features">Features</a>
+        <a class="landing-nav-link" href="#how-it-works">How it works</a>
+        <a class="landing-nav-link" href="#intelligence">Intelligence</a>
+        <a class="landing-nav-link" href="#pricing">Pricing</a>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'accounts:login' %}" class="btn btn-sm btn-outline-secondary px-3 py-2" style="border-radius: 9999px;">
+          Log In
+        </a>
+        <a href="{% url 'accounts:signup' %}" class="btn btn-sm btn-primary btn-pill px-4 py-2">
+          Get Started
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 2. Hero Section -->
+  <section class="landing-container text-center pt-5 pb-5 mt-4" style="margin-bottom: 110px;">
+    <!-- Main Headline -->
+    <h1 class="hero-title mx-auto mb-4" style="max-width: 920px;">
+      Subscriptions, billing and revenue, in one place.
+    </h1>
+
+    <!-- Subtitle -->
+    <p class="mx-auto mb-5 text-muted" style="max-width: 640px; font-size: 1.15rem; line-height: 1.6;">
+      Manage plans, invoices and payments, and see where revenue is leaking before it costs you.
+    </p>
+
+    <!-- Hero CTA Buttons -->
+    <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center gap-3 mb-5">
+      <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-pill shadow-sm">
+        Get Started
+      </a>
+      <a href="#features" class="btn btn-outline-secondary btn-pill">
+        See Features
+      </a>
+    </div>
+
+    <!-- Hero Demo UI Window (Revenue Dashboard Preview Card with MRR, ARR, and Mini Chart) -->
+    <div class="hero-demo-frame mx-auto" style="max-width: 1040px;">
+      <div class="hero-demo-inner">
+        <!-- Top bar of the preview card -->
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom border-light-subtle">
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-dark text-white px-2 py-1" style="font-size: 0.75rem;">BrightLoop Financials</span>
+            <span class="text-dark fw-bold small">Revenue Operations Console</span>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-success-subtle text-success border border-success-subtle small d-inline-flex align-items-center gap-1">
+              <span class="rounded-circle bg-success" style="width: 6px; height: 6px; display: inline-block;"></span> Live Sync Active
+            </span>
+            <span class="text-muted small">Updated Just Now</span>
+          </div>
+        </div>
+
+        <!-- 3 KPI Metric Cards (MRR, ARR, Active Contracts) -->
+        <div class="row g-3 mb-4 text-start">
+          <div class="col-md-4">
+            <div class="dashboard-stat-card h-100">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="font-label-caps text-muted">Monthly Recurring Revenue</span>
+                <span class="badge bg-success-subtle text-success" style="font-size: 0.7rem;">+14.2% MoM</span>
+              </div>
+              <div class="fs-3 fw-bold text-dark tracking-tight mb-1">$48,250.00</div>
+              <div class="text-muted small">Normalized across active cycles</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="dashboard-stat-card h-100">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="font-label-caps text-muted">Annual Run-Rate (ARR)</span>
+                <span class="badge bg-light text-dark border" style="font-size: 0.7rem;">Forecasted</span>
+              </div>
+              <div class="fs-3 fw-bold text-dark tracking-tight mb-1">$579,000.00</div>
+              <div class="text-muted small">Annualized recurring run-rate</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="dashboard-stat-card h-100">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="font-label-caps text-muted">Active Subscriptions</span>
+                <span class="badge bg-success-subtle text-success" style="font-size: 0.7rem;">98.4% Retention</span>
+              </div>
+              <div class="fs-3 fw-bold text-dark tracking-tight mb-1">1,248</div>
+              <div class="text-muted small">0 unbilled recurring periods</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Small Chart: Monthly Revenue Growth & Trend -->
+        <div class="dashboard-chart-box text-start">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+              <span class="fw-bold small text-dark d-block">Monthly Recurring Revenue Trend (Last 6 Months)</span>
+              <span class="text-muted" style="font-size: 0.75rem;">Consolidated billing aggregation &bull; All figures in USD</span>
+            </div>
+            <div class="d-flex gap-2">
+              <span class="badge bg-light text-dark border">6 Months</span>
+              <span class="badge bg-dark text-white">MRR Growth</span>
+            </div>
+          </div>
+
+          <!-- Clean SVG Line & Area Chart -->
+          <svg viewBox="0 0 800 180" class="w-100" style="height: 140px; overflow: visible;">
+            <defs>
+              <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#000000" stop-opacity="0.12"/>
+                <stop offset="100%" stop-color="#000000" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <!-- Grid lines -->
+            <line x1="40" y1="20" x2="760" y2="20" stroke="#f1f5f9" stroke-width="1"/>
+            <line x1="40" y1="60" x2="760" y2="60" stroke="#f1f5f9" stroke-width="1"/>
+            <line x1="40" y1="100" x2="760" y2="100" stroke="#f1f5f9" stroke-width="1"/>
+            <line x1="40" y1="140" x2="760" y2="140" stroke="#e2e8f0" stroke-width="1"/>
+            <!-- Area gradient fill -->
+            <polygon points="60,130 180,115 300,95 420,80 560,55 700,32 700,140 60,140" fill="url(#chartFill)"/>
+            <!-- Upward growth line -->
+            <polyline points="60,130 180,115 300,95 420,80 560,55 700,32" fill="none" stroke="#000000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Data points -->
+            <circle cx="60" cy="130" r="4" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+            <circle cx="180" cy="115" r="4" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+            <circle cx="300" cy="95" r="4" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+            <circle cx="420" cy="80" r="4" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+            <circle cx="560" cy="55" r="4" fill="#ffffff" stroke="#000000" stroke-width="2"/>
+            <circle cx="700" cy="32" r="5" fill="#000000" stroke="#ffffff" stroke-width="2"/>
+            <!-- X-Axis Labels -->
+            <text x="60" y="160" font-size="11" fill="#64748b" text-anchor="middle" font-family="sans-serif">May ($31k)</text>
+            <text x="180" y="160" font-size="11" fill="#64748b" text-anchor="middle" font-family="sans-serif">Jun ($34k)</text>
+            <text x="300" y="160" font-size="11" fill="#64748b" text-anchor="middle" font-family="sans-serif">Jul ($38k)</text>
+            <text x="420" y="160" font-size="11" fill="#64748b" text-anchor="middle" font-family="sans-serif">Aug ($41k)</text>
+            <text x="560" y="160" font-size="11" fill="#64748b" text-anchor="middle" font-family="sans-serif">Sep ($44k)</text>
+            <text x="700" y="160" font-size="11" fill="#000000" font-weight="bold" text-anchor="middle" font-family="sans-serif">Oct ($48.2k)</text>
+          </svg>
         </div>
       </div>
     </div>
+  </section>
 
-  {% elif user.role == 'customer' %}
-    <!-- ====================================================================
-         CUSTOMER DASHBOARD PLACEHOLDER
-         ==================================================================== -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h2 class="fw-bold mb-1">Welcome back, {{ user.first_name|default:user.email }}!</h2>
-        <p class="text-muted mb-0">Customer Portal &bull; Self-service subscription management</p>
-      </div>
-      <span class="badge badge-role-customer fs-6 px-3 py-2 text-uppercase">Customer Tier</span>
-    </div>
-
-    <div class="row g-4 mb-4">
-      <div class="col-md-4">
-        <div class="card h-100 shadow-sm border-0 stat-card">
-          <div class="card-body">
-            <h5 class="card-title text-muted text-uppercase fs-6">My Subscriptions</h5>
-            <p class="card-text text-muted">Review your active recurring plans, renewal terms, and contract status.</p>
-            <a href="{% url 'subscriptions:list' %}" class="btn btn-primary btn-sm">View Subscriptions &rarr;</a>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card h-100 shadow-sm border-0 stat-card-success">
-          <div class="card-body">
-            <h5 class="card-title text-muted text-uppercase fs-6">My Invoices & Receipts</h5>
-            <p class="card-text text-muted">Inspect itemized billing statements, payment receipts, and balance due.</p>
-            <a href="{% url 'billing:list' %}" class="btn btn-outline-primary btn-sm">View Invoices &rarr;</a>
-          </div>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="card h-100 shadow-sm border-0 stat-card-warning">
-          <div class="card-body">
-            <h5 class="card-title text-muted text-uppercase fs-6">Catalog & Upgrades</h5>
-            <p class="card-text text-muted">Explore additional tiers, add-on products, and seasonal promotional plans.</p>
-            <a href="{% url 'catalog:plan_list' %}" class="btn btn-outline-secondary btn-sm">Explore Plans &rarr;</a>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  {% elif user.role == 'staff' %}
-    <!-- ====================================================================
-         STAFF OPERATIONS DASHBOARD PLACEHOLDER
-         ==================================================================== -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h2 class="fw-bold mb-1">Staff Operations Desk</h2>
-        <p class="text-muted mb-0">Signed in as: <strong>{{ user.email }}</strong></p>
-      </div>
-      <span class="badge badge-role-staff fs-6 px-3 py-2 text-uppercase">Staff Member</span>
+  <!-- 3. Complete Subscription & Revenue Engine (3 Feature Cards Grid) -->
+  <section class="landing-container" id="features" style="margin-bottom: 140px;">
+    <div class="text-center mb-5">
+      <h2 class="font-h2 mb-3">Subscription Engine &amp; Billing Automation</h2>
+      <p class="text-muted mx-auto" style="max-width: 580px;">
+        Purpose-built infrastructure to manage recurring relationships, ensure predictable cashflow, and catch leaks early.
+      </p>
     </div>
 
     <div class="row g-4">
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Finance Analytics</h6>
-            <p class="small text-muted">Real-time revenue metrics, overdue statements, and key financial aggregates.</p>
-            <a href="{% url 'dashboard:finance' %}" class="btn btn-primary btn-sm">Open Dashboard &rarr;</a>
+      <!-- Feature Card 1: Subscriptions -->
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-card-icon-box">
+            <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+              <polyline points="22,6 12,13 2,6"/>
+            </svg>
           </div>
+          <h3 class="fs-4 fw-bold mb-2">Subscriptions</h3>
+          <p class="text-muted small leading-relaxed flex-grow-1 mb-4">
+            Configure flexible recurring plans with customizable billing cycles. Automate state transitions from Quotation to Confirmed and Active renewal with zero manual intervention.
+          </p>
+          <a href="{% url 'catalog:plan_list' %}" class="fw-bold small text-dark text-decoration-none d-inline-flex align-items-center">
+            Explore Subscriptions <span class="ms-1">&rarr;</span>
+          </a>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card-success">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Subscriptions Hub</h6>
-            <p class="small text-muted">Manage quotations, confirm contract states, and verify renewal schedules.</p>
-            <a href="{% url 'subscriptions:list' %}" class="btn btn-outline-primary btn-sm">All Subscriptions &rarr;</a>
+
+      <!-- Feature Card 2: Billing -->
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-card-icon-box">
+            <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <rect x="2" y="3" width="20" height="18" rx="2"/>
+              <line x1="6" y1="8" x2="18" y2="8"/>
+              <line x1="6" y1="12" x2="14" y2="12"/>
+              <line x1="6" y1="16" x2="10" y2="16"/>
+            </svg>
           </div>
+          <h3 class="fs-4 fw-bold mb-2">Billing</h3>
+          <p class="text-muted small leading-relaxed flex-grow-1 mb-4">
+            Automate scheduled recurring invoice generation. Enforce period-level uniqueness constraints, apply transparent tax rules, and track balances due with offline payment receipting.
+          </p>
+          <a href="{% url 'catalog:plan_list' %}" class="fw-bold small text-dark text-decoration-none d-inline-flex align-items-center">
+            Explore Billing <span class="ms-1">&rarr;</span>
+          </a>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card-warning">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Invoices & Billing</h6>
-            <p class="small text-muted">Audit generated invoices, record offline payments, and track overdue collections.</p>
-            <a href="{% url 'billing:list' %}" class="btn btn-outline-primary btn-sm">All Invoices &rarr;</a>
+
+      <!-- Feature Card 3: Revenue Intelligence -->
+      <div class="col-md-4">
+        <div class="feature-card">
+          <div class="feature-card-icon-box">
+            <svg width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <line x1="18" y1="20" x2="18" y2="10"/>
+              <line x1="12" y1="20" x2="12" y2="4"/>
+              <line x1="6" y1="20" x2="6" y2="14"/>
+            </svg>
           </div>
+          <h3 class="fs-4 fw-bold mb-2">Revenue Intelligence</h3>
+          <p class="text-muted small leading-relaxed flex-grow-1 mb-4">
+            Surface normalized MRR and ARR run-rates, run predictive What-If price elasticity simulations, and uncover unbilled active subscription cycles before revenue leaks.
+          </p>
+          <a href="#intelligence" class="fw-bold small text-dark text-decoration-none d-inline-flex align-items-center">
+            Explore Intelligence <span class="ms-1">&rarr;</span>
+          </a>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card-danger">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Product Catalog</h6>
-            <p class="small text-muted">Review available subscription tiers, products, tax rules, and discount codes.</p>
-            <a href="{% url 'catalog:plan_list' %}" class="btn btn-outline-secondary btn-sm">Catalog Overview &rarr;</a>
+    </div>
+  </section>
+
+  <!-- 4. How It Works / Proactive Retention & Churn Risk Preview -->
+  <section class="landing-container" id="how-it-works" style="margin-bottom: 140px;">
+    <div class="row g-5 align-items-center">
+      <div class="col-lg-5">
+        <span class="font-label-caps text-muted d-block mb-2">How It Works</span>
+        <h2 class="font-h2 mb-4">Proactive churn risk &amp; health scoring</h2>
+        <p class="text-muted mb-4" style="line-height: 1.7;">
+          Subscription businesses lose revenue when delinquent accounts go unnoticed. BrightLoop continuously monitors account settlement velocity, invoice aging, and renewal frequency.
+        </p>
+
+        <ul class="list-unstyled d-flex flex-column gap-3 mb-0">
+          <li class="d-flex align-items-start gap-3">
+            <svg class="text-dark flex-shrink-0 mt-1" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+            </svg>
+            <span class="small text-muted">Continuous subscriber health scoring (0–100) computed from payment timeliness.</span>
+          </li>
+          <li class="d-flex align-items-start gap-3">
+            <svg class="text-dark flex-shrink-0 mt-1" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+            </svg>
+            <span class="small text-muted">Automatic early warning alerts for accounts showing consecutive invoice delays.</span>
+          </li>
+          <li class="d-flex align-items-start gap-3">
+            <svg class="text-dark flex-shrink-0 mt-1" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+            </svg>
+            <span class="small text-muted">Seamless handoff to collections or customer success prior to renewal dates.</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="col-lg-7">
+        <div class="editor-card">
+          <div class="editor-inner-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                <span class="font-label-caps text-muted d-block" style="font-size: 0.75rem;">Account Intelligence</span>
+                <span class="fw-bold text-dark">Subscriber Health &amp; Churn Risk Score</span>
+              </div>
+              <span class="badge bg-light text-dark border small">Account #BL-8942</span>
+            </div>
+
+            <!-- Health Score Badge Banner -->
+            <div class="p-3 rounded mb-4 d-flex justify-content-between align-items-center" style="background-color: #f8fafc; border: 1px solid var(--theme-outline-variant);">
+              <div>
+                <div class="d-flex align-items-baseline gap-2 mb-1">
+                  <span class="display-6 fw-bold text-dark">92</span>
+                  <span class="text-muted fw-bold">/ 100</span>
+                </div>
+                <span class="text-muted small">Overall Health Index: Excellent</span>
+              </div>
+              <div class="text-end">
+                <span class="badge bg-success text-white px-3 py-2 mb-1 d-inline-block">Low Churn Risk</span>
+                <div class="text-muted" style="font-size: 0.75rem;">Predicted Churn Probability: 2.4%</div>
+              </div>
+            </div>
+
+            <!-- Precision Health Meters -->
+            <div class="d-flex flex-column gap-3 mb-4">
+              <div>
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>On-Time Invoice Settlement Rate</span>
+                  <span class="fw-bold text-dark">96% (12 of 12 paid on time)</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-dark" role="progressbar" style="width: 96%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Contract Longevity &amp; Renewal Cadence</span>
+                  <span class="fw-bold text-dark">88% (18 continuous billing periods)</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-dark" role="progressbar" style="width: 88%;"></div>
+                </div>
+              </div>
+              <div>
+                <div class="d-flex justify-content-between text-muted small mb-1">
+                  <span>Payment Method Reliability</span>
+                  <span class="fw-bold text-dark">100% (Zero recorded payment disputes)</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-dark" role="progressbar" style="width: 100%;"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status Callout -->
+            <div class="d-flex align-items-center justify-content-between pt-3 border-top text-muted small">
+              <div class="d-flex align-items-center gap-2">
+                <span class="rounded-circle bg-success" style="width: 8px; height: 8px; display: inline-block;"></span>
+                <span>Next scheduled renewal: in 14 days &bull; No overdue balance</span>
+              </div>
+              <span class="font-monospace text-dark fw-bold">$299.00 / mo</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
+  </section>
 
-  {% elif user.is_role_admin %}
-    <!-- ====================================================================
-         ADMINISTRATOR MASTER CONSOLE PLACEHOLDER
-         ==================================================================== -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <div>
-        <h2 class="fw-bold mb-1">Administrator Control Center</h2>
-        <p class="text-muted mb-0">System Authority &bull; Full oversight of users, billing engines, and system catalog.</p>
+  <!-- 5. Revenue Leak Detector (Dark Feature Panel) -->
+  <section class="landing-container" id="intelligence" style="margin-bottom: 140px;">
+    <div class="row g-5 align-items-center">
+      <!-- Dark Feature Panel (Revenue Leak Detector) -->
+      <div class="col-lg-6 order-2 order-lg-1">
+        <div class="dark-feature-panel">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="window-dots mb-0">
+              <span class="window-dot" style="background-color: #ef4444;"></span>
+              <span class="window-dot" style="background-color: #eab308;"></span>
+              <span class="window-dot" style="background-color: #22c55e;"></span>
+            </div>
+            <span class="badge bg-secondary text-white font-monospace" style="font-size: 0.7rem;">LEAK DETECTOR v2.4</span>
+          </div>
+
+          <!-- Diagnostic Leak Items -->
+          <div class="leak-alert-item leak-critical">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-danger fw-bold small font-monospace">[CRITICAL] Missing Invoices Detected</span>
+              <span class="badge bg-danger text-white" style="font-size: 0.65rem;">Action Needed</span>
+            </div>
+            <div class="text-light small mb-1">2 active subscriptions in current period have no invoice generated.</div>
+            <div class="text-white-50 font-monospace" style="font-size: 0.75rem;">Revenue at risk: $3,450.00 &bull; Subscriptions: #BL-1024, #BL-1089</div>
+          </div>
+
+          <div class="leak-alert-item leak-warning">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-warning fw-bold small font-monospace">[WARNING] Past-Due Receivables</span>
+              <span class="badge bg-warning text-dark" style="font-size: 0.65rem;">15+ Days Overdue</span>
+            </div>
+            <div class="text-light small mb-1">3 issued invoices have exceeded Net-15 payment terms.</div>
+            <div class="text-white-50 font-monospace" style="font-size: 0.75rem;">Outstanding balance: $5,120.00 &bull; Automated reminders triggered</div>
+          </div>
+
+          <div class="leak-alert-item leak-success">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-success fw-bold small font-monospace">[PROTECTED] Duplicate Billing Blocked</span>
+              <span class="badge bg-success text-white" style="font-size: 0.65rem;">Resolved</span>
+            </div>
+            <div class="text-light small mb-1">Unique constraint prevented double-billing on Sub #BL-0832.</div>
+            <div class="text-white-50 font-monospace" style="font-size: 0.75rem;">Prevented double charge: $950.00 &bull; Database rule enforced</div>
+          </div>
+
+          <div class="leak-alert-item">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-info fw-bold small font-monospace">[VERIFIED] Line-Item Reconciliation</span>
+              <span class="badge bg-dark text-white-50 border border-secondary" style="font-size: 0.65rem;">100% Matched</span>
+            </div>
+            <div class="text-light small">All 148 active contract line items reconciled with catalog unit prices.</div>
+          </div>
+        </div>
       </div>
-      <span class="badge badge-role-admin fs-6 px-3 py-2 text-uppercase">Super Administrator</span>
+
+      <!-- Explanatory Text Column -->
+      <div class="col-lg-6 order-1 order-lg-2">
+        <h2 class="font-h2 mb-4">Catch revenue leaks before they cost you</h2>
+        <p class="text-muted mb-4" style="line-height: 1.7;">
+          Subscription businesses leak up to 8% of annual revenue through forgotten invoice generation, uncollected past-due receivables, and untracked cancellations. BrightLoop continuously audits your subscription ledger to pinpoint leaks before they compound.
+        </p>
+
+        <div class="d-flex flex-wrap gap-2 mb-4">
+          <span class="badge bg-light text-dark border px-3 py-2">Automated Ledger Audit</span>
+          <span class="badge bg-light text-dark border px-3 py-2">Zero Duplicate Billing</span>
+          <span class="badge bg-light text-dark border px-3 py-2">Aging Receivables Alerts</span>
+          <span class="badge bg-light text-dark border px-3 py-2">Line-Item Accuracy</span>
+        </div>
+
+        <a href="{% url 'catalog:plan_list' %}" class="fw-bold text-dark text-decoration-none d-inline-flex align-items-center">
+          Explore Revenue Intelligence <span class="ms-1">&rarr;</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. Use Cases Grid (6 Modular Cards) -->
+  <section class="landing-container" id="use-cases" style="margin-bottom: 140px;">
+    <div class="text-center mb-5">
+      <h2 class="font-h2 mb-3">Engineered for Every Subscription Model</h2>
+      <p class="text-muted mx-auto" style="max-width: 580px;">
+        Flexible recurring billing infrastructure adapting to the specific lifecycle demands of your industry.
+      </p>
     </div>
 
-    <div class="row g-4 mb-4">
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Finance Dashboard</h6>
-            <p class="small text-muted">High-level financial KPIs, revenue aggregation, and cashflow reports.</p>
-            <a href="{% url 'dashboard:finance' %}" class="btn btn-primary btn-sm">Open Analytics &rarr;</a>
+    <div class="row g-4">
+      <!-- 1. Gyms -->
+      <div class="col-md-4">
+        <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
+          <div class="mb-3 text-dark">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M6 5v14M18 5v14M2 9v6M22 9v6M6 12h12"/>
+            </svg>
           </div>
+          <h4 class="fs-5 fw-bold mb-2">Gyms</h4>
+          <p class="text-muted small leading-relaxed mb-0">Monthly and annual fitness passes, automated recurring membership dues, and locker rental add-ons.</p>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card-danger">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Staff Management</h6>
-            <p class="small text-muted">Provision new internal staff accounts (Admin privilege only).</p>
-            <a href="{% url 'accounts:staff_create' %}" class="btn btn-outline-danger btn-sm">Add Staff User &rarr;</a>
+
+      <!-- 2. SaaS tools -->
+      <div class="col-md-4">
+        <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
+          <div class="mb-3 text-dark">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
           </div>
+          <h4 class="fs-5 fw-bold mb-2">SaaS Tools</h4>
+          <p class="text-muted small leading-relaxed mb-0">Tiered software subscriptions, per-seat recurring billing, automated renewals, and instant proration handling.</p>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card-success">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Subscription Engine</h6>
-            <p class="small text-muted">Manage global subscriptions, state transitions, and automated billing tasks.</p>
-            <a href="{% url 'subscriptions:list' %}" class="btn btn-outline-primary btn-sm">View Subscriptions &rarr;</a>
+
+      <!-- 3. Internet providers -->
+      <div class="col-md-4">
+        <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
+          <div class="mb-3 text-dark">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+              <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+              <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+              <line x1="12" y1="20" x2="12.01" y2="20"/>
+            </svg>
           </div>
+          <h4 class="fs-5 fw-bold mb-2">Internet Providers</h4>
+          <p class="text-muted small leading-relaxed mb-0">Fixed-cycle broadband contracts, itemized modem lease fees, automated statements, and Net-15 terms.</p>
         </div>
       </div>
-      <div class="col-md-3">
-        <div class="card h-100 shadow-sm border-0 stat-card-warning">
-          <div class="card-body">
-            <h6 class="text-muted text-uppercase">Django Admin</h6>
-            <p class="small text-muted">Direct low-level database CRUD operations for all registered models.</p>
-            <a href="/admin/" target="_blank" class="btn btn-outline-dark btn-sm">Open Django Admin &nearr;</a>
+
+      <!-- 4. Magazines -->
+      <div class="col-md-4">
+        <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
+          <div class="mb-3 text-dark">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            </svg>
+          </div>
+          <h4 class="fs-5 fw-bold mb-2">Magazines</h4>
+          <p class="text-muted small leading-relaxed mb-0">Print and digital recurring publications, cycle-based fulfillment tracking, and seamless subscription renewals.</p>
+        </div>
+      </div>
+
+      <!-- 5. Tuition centres -->
+      <div class="col-md-4">
+        <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
+          <div class="mb-3 text-dark">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+              <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+            </svg>
+          </div>
+          <h4 class="fs-5 fw-bold mb-2">Tuition Centres</h4>
+          <p class="text-muted small leading-relaxed mb-0">Term-based student course enrollments, automated monthly tuition invoicing, and offline fee reconciliation.</p>
+        </div>
+      </div>
+
+      <!-- 6. Memberships -->
+      <div class="col-md-4">
+        <div class="card p-4 h-100 theme-card-hover" style="border-radius: 20px !important;">
+          <div class="mb-3 text-dark">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+          </div>
+          <h4 class="fs-5 fw-bold mb-2">Memberships</h4>
+          <p class="text-muted small leading-relaxed mb-0">Professional associations, social clubs, recurring community subscriptions, and unified account statements.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. Simple, Transparent Pricing (Dynamic from Plan model) -->
+  <section class="landing-container" id="pricing" style="margin-bottom: 140px;">
+    <div class="text-center mb-5">
+      <h2 class="font-h2 mb-3">Simple, Transparent Pricing</h2>
+      <p class="text-muted mx-auto" style="max-width: 580px;">
+        Predictable recurring plans engineered to scale from initial rollout to enterprise subscription volume.
+      </p>
+    </div>
+
+    {% get_plans as plans_list %}
+    <div class="row g-4 justify-content-center align-items-stretch">
+      {% for plan in plans_list %}
+        <div class="col-md-6 col-lg-3">
+          <div class="pricing-card {% if 'Professional' in plan.name or 'Pro' in plan.name or forloop.counter == 3 %}pricing-card-popular{% endif %}">
+            {% if 'Professional' in plan.name or 'Pro' in plan.name or forloop.counter == 3 %}
+              <div class="popular-badge">Most Popular</div>
+            {% endif %}
+
+            <h3 class="fs-5 fw-bold text-dark mb-2">{{ plan.name }}</h3>
+            
+            <div class="mb-4">
+              <span class="display-6 fw-bold text-dark">${{ plan.price|floatformat:0 }}</span>
+              <span class="text-muted small">/{{ plan.billing_period|lower|default:"mo" }}</span>
+            </div>
+
+            <p class="text-muted small mb-4 flex-grow-1">
+              {% if plan.renewable %}
+                Automated renewal support, period-level invoicing, and full recurring ledger tracking.
+              {% else %}
+                Flexible one-time billing and scheduled recurring provisioning.
+              {% endif %}
+            </p>
+
+            <a href="{% url 'accounts:signup' %}" class="btn w-full {% if 'Professional' in plan.name or 'Pro' in plan.name or forloop.counter == 3 %}btn-primary{% else %}btn-outline-secondary{% endif %} rounded-pill py-2 font-medium">
+              {% if 'Enterprise' in plan.name %}
+                Contact Sales
+              {% else %}
+                Start Trial
+              {% endif %}
+            </a>
+          </div>
+        </div>
+      {% empty %}
+        <!-- Empty state if no plans are configured in the database -->
+        <div class="col-12 text-center py-5">
+          <div class="p-5 border rounded-4 bg-light mx-auto" style="max-width: 540px;">
+            <h4 class="fw-bold mb-2">No Plans Available Yet</h4>
+            <p class="text-muted small mb-4">Subscription plans are currently being configured by the system administrator.</p>
+            <a href="{% url 'accounts:signup' %}" class="btn btn-primary rounded-pill px-4">Register for Updates</a>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- 8. Real Architecture Features (Replacing Trust Strip and SOC 2/GDPR/HIPAA/SLA) -->
+  <section class="landing-container border-top border-bottom py-5" style="margin-bottom: 140px;">
+    <div class="row g-5 align-items-center py-4">
+      <div class="col-lg-5">
+        <h2 class="font-h2 mb-3">Engineered for Reliability &amp; Data Integrity</h2>
+        <p class="text-muted mb-4" style="line-height: 1.7;">
+          BrightLoop is built with strict database constraints, hardened authentication policies, and multi-tier access controls to guarantee total financial accuracy.
+        </p>
+        <a href="{% url 'catalog:plan_list' %}" class="fw-bold text-dark text-decoration-none d-inline-flex align-items-center">
+          View System Architecture <span class="ms-1">&rarr;</span>
+        </a>
+      </div>
+
+      <div class="col-lg-7">
+        <div class="row g-3">
+          <div class="col-sm-6">
+            <div class="security-tile h-100">
+              <span class="fw-bold text-dark fs-6 mb-1">Role-Based Access</span>
+              <span class="text-muted small">Strict permissions separating Customer self-service, Staff operations, and System Administrators.</span>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="security-tile h-100">
+              <span class="fw-bold text-dark fs-6 mb-1">Password Rules</span>
+              <span class="text-muted small">Hardened password complexity requiring uppercase, lowercase, numeric digits, and special characters.</span>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="security-tile h-100">
+              <span class="fw-bold text-dark fs-6 mb-1">No Duplicate Billing Per Period</span>
+              <span class="text-muted small">Unique database constraints on subscription contract and period start eliminate accidental double-billing.</span>
+            </div>
+          </div>
+          <div class="col-sm-6">
+            <div class="security-tile h-100">
+              <span class="fw-bold text-dark fs-6 mb-1">Database-Level Aggregation</span>
+              <span class="text-muted small">Optimized SQL grouping and subquery annotations compute MRR, ARR, and financial metrics in real time.</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  {% endif %}
+  </section>
 
-</div>
+  <!-- 9. Pre-Footer Call to Action -->
+  <section class="landing-container text-center" style="margin-bottom: 120px;">
+    <h2 class="display-4 fw-bold tracking-tight mb-4">Ready to automate your billing?</h2>
+    <a href="{% url 'accounts:signup' %}" class="btn btn-primary btn-pill px-5 py-3 fs-5 shadow">
+      Get Started with BrightLoop
+    </a>
+  </section>
+
+  <!-- 10. Minimalist Modern Footer -->
+  <footer class="landing-footer">
+    <div class="landing-container">
+      <div class="row g-5 mb-5">
+        <!-- Brand Column (No newsletter input) -->
+        <div class="col-lg-5">
+          <div class="fs-4 fw-bold tracking-tight text-dark mb-3">BrightLoop</div>
+          <p class="text-muted small mb-0" style="max-width: 360px; line-height: 1.6;">
+            Subscriptions, billing and revenue, in one place. Engineered for reliability, financial precision, and automated contract management.
+          </p>
+        </div>
+
+        <!-- Links Column 1: Platform -->
+        <div class="col-6 col-md-3 col-lg-3">
+          <h5 class="font-label-caps text-dark mb-3">Platform</h5>
+          <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#how-it-works">How It Works</a></li>
+            <li><a href="#intelligence">Revenue Intelligence</a></li>
+            <li><a href="#pricing">Pricing Plans</a></li>
+          </ul>
+        </div>
+
+        <!-- Links Column 2: Quick Links -->
+        <div class="col-6 col-md-4 col-lg-4">
+          <h5 class="font-label-caps text-dark mb-3">Quick Access</h5>
+          <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
+            <li><a href="{% url 'portal:landing' %}">Customer Portal</a></li>
+            <li><a href="{% url 'catalog:plan_list' %}">Browse Plans</a></li>
+            <li><a href="{% url 'accounts:login' %}">Log In</a></li>
+            <li><a href="{% url 'accounts:signup' %}">Create Account</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Footer Bottom Bar -->
+      <div class="pt-4 border-top d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 text-muted small">
+        <div>
+          &copy; {% now "Y" %} BrightLoop. All rights reserved.
+        </div>
+        <div class="d-flex align-items-center gap-4">
+          <a href="{% url 'catalog:plan_list' %}" class="text-muted">Subscription Catalog</a>
+          <a href="{% url 'accounts:login' %}" class="text-muted">Client Portal</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+{% else %}
+  <!-- ========================================================================
+       LOGGED-IN USER CONSOLE (Customer, Staff, Admin - Upgraded with 24px cards)
+       ======================================================================== -->
+  <div class="container-fluid py-4">
+    {% if user.role == 'customer' %}
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold mb-1">Welcome back, {{ user.first_name|default:user.email }}!</h2>
+          <p class="text-muted mb-0">Customer Portal &bull; Self-service subscription management</p>
+        </div>
+        <span class="badge bg-primary text-uppercase px-3 py-2">Customer Account</span>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-md-4">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Contracts</span>
+              <h4 class="fw-bold mb-2">My Subscriptions</h4>
+              <p class="text-muted small mb-4">Review active recurring plans, renewal terms, and contract status.</p>
+              <a href="{% url 'subscriptions:list' %}" class="btn btn-primary btn-sm">View Subscriptions &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Financial Statements</span>
+              <h4 class="fw-bold mb-2">My Invoices &amp; Receipts</h4>
+              <p class="text-muted small mb-4">Inspect itemized billing statements, payment receipts, and balance due.</p>
+              <a href="{% url 'billing:list' %}" class="btn btn-outline-secondary btn-sm">View Invoices &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Add-ons &amp; Tiers</span>
+              <h4 class="fw-bold mb-2">Catalog &amp; Upgrades</h4>
+              <p class="text-muted small mb-4">Explore additional tiers, add-on products, and seasonal promotional plans.</p>
+              <a href="{% url 'catalog:plan_list' %}" class="btn btn-outline-secondary btn-sm">Explore Plans &rarr;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {% elif user.role == 'staff' %}
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold mb-1">Staff Operations Desk</h2>
+          <p class="text-muted mb-0">Signed in as: <strong>{{ user.email }}</strong></p>
+        </div>
+        <span class="badge bg-secondary text-uppercase px-3 py-2">Staff Operations</span>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Analytics</span>
+              <h5 class="fw-bold mb-2">Finance Dashboard</h5>
+              <p class="small text-muted mb-4">Real-time revenue metrics, overdue statements, and key financial aggregates.</p>
+              <a href="{% url 'dashboard:finance' %}" class="btn btn-primary btn-sm">Open Dashboard &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Contracts</span>
+              <h5 class="fw-bold mb-2">Subscriptions Hub</h5>
+              <p class="small text-muted mb-4">Manage quotations, confirm contract states, and verify renewal schedules.</p>
+              <a href="{% url 'subscriptions:list' %}" class="btn btn-outline-secondary btn-sm">All Subscriptions &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Receivables</span>
+              <h5 class="fw-bold mb-2">Invoices &amp; Billing</h5>
+              <p class="small text-muted mb-4">Audit generated invoices, record offline payments, and track overdue collections.</p>
+              <a href="{% url 'billing:list' %}" class="btn btn-outline-secondary btn-sm">All Invoices &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Tiers &amp; Add-ons</span>
+              <h5 class="fw-bold mb-2">Product Catalog</h5>
+              <p class="small text-muted mb-4">Review available subscription tiers, products, tax rules, and discount codes.</p>
+              <a href="{% url 'catalog:plan_list' %}" class="btn btn-outline-secondary btn-sm">Catalog Overview &rarr;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    {% elif user.is_role_admin %}
+      <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="fw-bold mb-1">Administrator Control Center</h2>
+          <p class="text-muted mb-0">System Authority &bull; Full oversight of users, billing engines, and system catalog.</p>
+        </div>
+        <span class="badge bg-dark text-uppercase px-3 py-2">Super Administrator</span>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Analytics</span>
+              <h5 class="fw-bold mb-2">Finance Dashboard</h5>
+              <p class="small text-muted mb-4">High-level financial KPIs, revenue aggregation, and cashflow reports.</p>
+              <a href="{% url 'dashboard:finance' %}" class="btn btn-primary btn-sm">Open Analytics &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Governance</span>
+              <h5 class="fw-bold mb-2">Staff Management</h5>
+              <p class="small text-muted mb-4">Provision new internal staff accounts (Admin privilege only).</p>
+              <a href="{% url 'accounts:staff_create' %}" class="btn btn-outline-secondary btn-sm">Add Staff User &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Contracts</span>
+              <h5 class="fw-bold mb-2">Subscription Engine</h5>
+              <p class="small text-muted mb-4">Manage global subscriptions, state transitions, and automated billing tasks.</p>
+              <a href="{% url 'subscriptions:list' %}" class="btn btn-outline-secondary btn-sm">View Subscriptions &rarr;</a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card h-100 theme-card-hover">
+            <div class="card-body">
+              <span class="font-label-caps text-muted d-block mb-1">Low-Level CRUD</span>
+              <h5 class="fw-bold mb-2">Django Admin</h5>
+              <p class="small text-muted mb-4">Direct low-level database CRUD operations for all registered models.</p>
+              <a href="/admin/" target="_blank" class="btn btn-outline-secondary btn-sm">Open Django Admin &nearr;</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+{% endif %}
 {% endblock %}

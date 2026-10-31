@@ -1,4 +1,4 @@
-﻿{% comment %}
+{% comment %}
   templates/base.html
   ====================
   HOW TO USE:
@@ -43,9 +43,12 @@
   <!-- BrightLoop Design System (Sidebar, Cards, Tables, Badges, Forms) -->
   <link rel="stylesheet" href="{% static 'css/brightloop.css' %}">
 
+  <!-- BrightLoop Theme (DESIGN.md - 24px cards, black buttons, 8px inputs) -->
+  <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+
   {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
 
   <!-- ========================================================================
        SIDEBAR NAVIGATION (Desktop: fixed | Mobile: offcanvas)
@@ -58,10 +61,10 @@
 
   {# --- Mobile Offcanvas Sidebar (visible < 992px) --- #}
   <div class="offcanvas offcanvas-start no-print" tabindex="-1" id="sidebarOffcanvas"
-       aria-labelledby="sidebarOffcanvasLabel" style="width: var(--bl-sidebar-width, 260px); background: var(--bl-sidebar-bg, #0f172a);">
+       aria-labelledby="sidebarOffcanvasLabel" style="width: var(--bl-sidebar-width, 260px); background: var(--bl-sidebar-bg, #111318);">
     <div class="offcanvas-header border-bottom border-secondary">
       <a class="text-white text-decoration-none d-flex align-items-center" href="{% url 'accounts:home' %}">
-        <span class="badge bg-primary-brand me-2 px-2 py-1">BL</span>
+        <span class="badge bg-dark me-2 px-2 py-1">BL</span>
         <span class="fw-bold fs-5">BrightLoop</span>
       </a>
       <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
