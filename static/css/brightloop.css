@@ -1,6 +1,6 @@
-/*
+﻿/*
  * ============================================================================
- * BrightLoop Design System — brightloop.css
+ * BrightLoop Design System â€” brightloop.css
  * ============================================================================
  *
  * HOW TEAMMATES SHOULD USE THIS FILE:
@@ -462,6 +462,21 @@ body {
     color: var(--bl-text-inverse) !important;
 }
 
+
+/*
+ * badge-status-* aliases
+ * ----------------------
+ * Several portal templates (staff_dashboard, billing_calendar, reports, etc.)
+ * use the badge-status-{variant} naming convention. These aliases ensure both
+ * naming styles work identically using the same design tokens.
+ */
+.badge-status-active    { background-color: var(--bl-color-active)   !important; color: var(--bl-text-inverse) !important; }
+.badge-status-draft     { background-color: var(--bl-color-draft)    !important; color: var(--bl-text-inverse) !important; }
+.badge-status-paid      { background-color: var(--bl-color-paid)     !important; color: var(--bl-text-inverse) !important; }
+.badge-status-overdue   { background-color: var(--bl-color-overdue)  !important; color: var(--bl-text-inverse) !important; }
+.badge-status-closed    { background-color: var(--bl-color-closed)   !important; color: var(--bl-text-inverse) !important; }
+.badge-status-pending   { background-color: var(--bl-color-warning)  !important; color: var(--bl-text-inverse) !important; }
+.badge-status-confirmed { background-color: var(--bl-brand-accent)   !important; color: var(--bl-text-inverse) !important; }
 /* Role badges */
 .badge-role-admin {
     background-color: var(--bl-color-overdue) !important;
@@ -561,9 +576,43 @@ body {
         padding-right: 0 !important;
     }
 
-    /* Ensure tables never break mobile viewport */
+        /* Ensure tables never break mobile viewport */
     .table-responsive,
     .bl-table-responsive {
         border: none;
     }
+    /* Phone-width topbar: tighter padding so bell + avatar don't overflow */
+    .bl-topbar {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+
+    /* Stat cards: stack to single column on very small phones */
+    .row.g-3 > [class*="col-sm-6"]:last-child {
+        margin-top: 0;
+    }
+
+    /* Filter pill rows: allow wrapping without horizontal scroll */
+    .d-flex.gap-2 {
+        flex-wrap: wrap;
+    }
+
+    /* Notification dropdown: full width on phone */
+    .dropdown-menu[style*="min-width:300px"] {
+        min-width: calc(100vw - 2rem) !important;
+        right: 0.5rem !important;
+        left: auto !important;
+    }
+
+    /* Container fluid: tighter side padding on phone */
+    .container-fluid {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+
+    /* Header action button rows: allow vertical stacking */
+    .d-flex.flex-wrap.gap-2 {
+        width: 100%;
+    }
+
 }
