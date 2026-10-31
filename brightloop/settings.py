@@ -32,6 +32,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.humanize",
 
     # BrightLoop Apps (Kept modular so team members can work in parallel)
     "accounts.apps.AccountsConfig",
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     "subscriptions.apps.SubscriptionsConfig",
     "billing.apps.BillingConfig",
     "dashboard.apps.DashboardConfig",
+    "intelligence.apps.IntelligenceConfig",
 ]
 
 MIDDLEWARE = [
