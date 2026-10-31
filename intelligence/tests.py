@@ -347,3 +347,86 @@ class RevenueLeakDetectorTests(TestCase):
         self.assertContains(resp_staff, "Check 4: Payment Discrepancies")
         self.assertContains(resp_staff, "Check 5: Integrity Discrepancies")
 
+
+class WhatIfSimulatorTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.staff_user = User.objects.create_user(
+            email="sim_staff@brightloop.local",
+            password="SecurePassword@123",
+            role="staff",
+        )
+        self.customer_user = User.objects.create_user(
+            email="sim_customer@brightloop.local",
+            password="SecurePassword@123",
+            role="customer",
+        )
+
+    def test_simulate_function_math(self):
+        from intelligence.services import simulate
+        base = Decimal("100000.00")
+        res = simulate(
+            base_mrr=base,
+            price_increase_pct=10.0,
+            customer_growth_pct=5.0,
+            churn_pct=2.0,
+            months=12,
+        )
+
+        self.assertEqual(len(res["projections"]), 12)
+        self.assertEqual(res["base_mrr"], Decimal("100000.00"))
+        self.assertEqual(res["disclaimer"], "Simulated. Based on assumptions, not real data.")
+
+        # ARR must strictly equal Month 12 MRR * 12
+        expected_arr = res["month_12_mrr"] * Decimal("12")
+        self.assertEqual(res["projected_arr"], expected_arr)
+
+        # Cumulative revenue must equal sum of projections
+        sum_mrr = sum(p["mrr"] for p in res["projections"])
+        self.assertEqual(res["cumulative_revenue"], sum_mrr)
+
+        # Delta vs baseline = cumulative - (base * 12)
+        expected_delta = res["cumulative_revenue"] - (base * Decimal("12"))
+        self.assertEqual(res["delta_vs_baseline"], expected_delta)
+        self.assertGreater(res["delta_vs_baseline"], Decimal("0.00"))
+
+    def test_simulate_zero_and_empty_data(self):
+        from intelligence.services import simulate
+        res = simulate(base_mrr=Decimal("0.00"), months=12)
+        self.assertEqual(res["month_12_mrr"], Decimal("0.00"))
+        self.assertEqual(res["projected_arr"], Decimal("0.00"))
+        self.assertEqual(res["cumulative_revenue"], Decimal("0.00"))
+        self.assertEqual(res["delta_vs_baseline"], Decimal("0.00"))
+
+    def test_simulate_stress_churn_non_negative(self):
+        from intelligence.services import simulate
+        res = simulate(
+            base_mrr=Decimal("50000.00"),
+            price_increase_pct=-100.0,
+            customer_growth_pct=0.0,
+            churn_pct=50.0,
+        )
+        # Price decrease of 100% drops MRR to 0
+        self.assertEqual(res["month_12_mrr"], Decimal("0.00"))
+        # Never negative
+        for p in res["projections"]:
+            self.assertGreaterEqual(p["mrr"], Decimal("0.00"))
+
+    def test_simulator_view_security_and_rendering(self):
+        # Customers get 403
+        self.client.login(email="sim_customer@brightloop.local", password="SecurePassword@123")
+        resp_cust = self.client.get("/intelligence/simulator/")
+        self.assertEqual(resp_cust.status_code, 403)
+
+        # Staff gets 200 with sliders and disclaimer
+        self.client.login(email="sim_staff@brightloop.local", password="SecurePassword@123")
+        resp_staff = self.client.get("/intelligence/simulator/")
+        self.assertEqual(resp_staff.status_code, 200)
+        self.assertContains(resp_staff, "What-If Revenue Simulator")
+        self.assertContains(resp_staff, "Simulated. Based on assumptions, not real data.")
+        self.assertContains(resp_staff, "priceSlider")
+        self.assertContains(resp_staff, "growthSlider")
+        self.assertContains(resp_staff, "churnSlider")
+        self.assertContains(resp_staff, "simulationChart")
+        self.assertContains(resp_staff, "Formulas Used")
+

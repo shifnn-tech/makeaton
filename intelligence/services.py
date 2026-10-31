@@ -832,3 +832,108 @@ def detect_leaks() -> dict:
         "checks": checks,
     }
 
+
+def simulate(
+    base_mrr: Decimal = None,
+    price_increase_pct: float = 0.0,
+    customer_growth_pct: float = 5.0,
+    churn_pct: float = 3.0,
+    months: int = 12,
+    start_date: date = None,
+) -> dict:
+    """
+    Feature 4: What-If Revenue Simulator.
+    Projects future recurring revenue over N months based on three interactive variables:
+      1. Price Increase % (shifts recurring price basis)
+      2. Customer Growth % (monthly new customer expansion)
+      3. Churn % (monthly customer cancellation / attrition)
+
+    Formulas:
+      - Net Monthly Growth = (Customer Growth % - Churn %) / 100
+      - Month 1 MRR = Base MRR * (1 + Price Increase % / 100) * (1 + Net Monthly Growth)
+      - Month t MRR = Month (t-1) MRR * (1 + Net Monthly Growth) for t in 2..12
+      - Projected ARR = Month 12 MRR * 12
+      - 12-Month Cumulative Revenue = Sum(Month 1 .. Month 12 MRR)
+      - Net Gain/Loss vs Baseline = 12-Month Cumulative - (Base MRR * 12)
+
+    Disclaimer:
+      "Simulated. Based on assumptions, not real data."
+    """
+    if base_mrr is None:
+        base_mrr = get_mrr()["mrr"]
+
+    base = quantize_currency(Decimal(str(base_mrr or "0.00")))
+    p_pct = Decimal(str(price_increase_pct or 0.0)) / Decimal("100")
+    g_pct = Decimal(str(customer_growth_pct or 0.0)) / Decimal("100")
+    c_pct = Decimal(str(churn_pct or 0.0)) / Decimal("100")
+    net_growth = g_pct - c_pct
+
+    if start_date is None:
+        start_date = timezone.localdate()
+
+    # Initial price-adjusted base
+    current_mrr = max(Decimal("0.00"), base * (Decimal("1") + p_pct))
+
+    projections = []
+    labels = []
+    simulated_series = []
+    baseline_series = []
+    cumulative_rev = Decimal("0.00")
+
+    for step in range(1, months + 1):
+        current_mrr = max(Decimal("0.00"), current_mrr * (Decimal("1") + net_growth))
+        current_quant = quantize_currency(current_mrr)
+        cumulative_rev += current_quant
+
+        m_target = start_date.month + step
+        y_target = start_date.year + ((m_target - 1) // 12)
+        m_norm = ((m_target - 1) % 12) + 1
+        step_date = date(y_target, m_norm, 1)
+        month_label = step_date.strftime("%b %Y")
+        label_full = f"M{step} ({month_label})"
+
+        projections.append({
+            "step": step,
+            "label": label_full,
+            "month_name": month_label,
+            "mrr": current_quant,
+            "arr": quantize_currency(current_quant * Decimal("12")),
+            "baseline_mrr": base,
+        })
+        labels.append(label_full)
+        simulated_series.append(float(current_quant))
+        baseline_series.append(float(base))
+
+    month_12_mrr = projections[-1]["mrr"] if projections else Decimal("0.00")
+    projected_arr = projections[-1]["arr"] if projections else Decimal("0.00")
+    baseline_12mo = quantize_currency(base * Decimal(str(months)))
+    delta_vs_baseline = quantize_currency(cumulative_rev - baseline_12mo)
+    net_growth_pct = round(float((g_pct - c_pct) * Decimal("100")), 2)
+
+    return {
+        "base_mrr": base,
+        "price_increase_pct": float(price_increase_pct),
+        "customer_growth_pct": float(customer_growth_pct),
+        "churn_pct": float(churn_pct),
+        "net_growth_pct": net_growth_pct,
+        "months": months,
+        "month_12_mrr": month_12_mrr,
+        "projected_arr": projected_arr,
+        "cumulative_revenue": quantize_currency(cumulative_rev),
+        "baseline_12mo": baseline_12mo,
+        "delta_vs_baseline": delta_vs_baseline,
+        "projections": projections,
+        "labels": labels,
+        "simulated_series": simulated_series,
+        "baseline_series": baseline_series,
+        "disclaimer": "Simulated. Based on assumptions, not real data.",
+        "formulas": {
+            "mrr_step_1": "MRR_1 = Base_MRR * (1 + Price_Increase_% / 100) * (1 + Net_Growth_%)",
+            "mrr_compounding": "MRR_t = MRR_(t-1) * (1 + (Growth_% - Churn_%) / 100)",
+            "projected_arr": "Projected ARR = Month_12_MRR * 12",
+            "cumulative": "12-Month Cumulative = Sum(Month_1 .. Month_12 MRR)",
+            "net_impact": "Impact vs Baseline = Cumulative Revenue - (Base_MRR * 12)",
+        },
+    }
+
+

@@ -91,3 +91,38 @@ def leak_detector_view(request):
     }
     return render(request, "intelligence/leaks.html", context)
 
+
+@role_required("admin", "staff")
+def simulator_view(request):
+    """
+    Feature 4: What-If Revenue Simulator:
+      - 3 interactive sliders: Price Increase %, Customer Growth %, Churn %
+      - 12-month projected MRR & ARR
+      - Live browser recalculation without reload
+      - Formula transparency & simulation disclaimer
+    """
+    from .services import simulate, get_mrr
+
+    mrr_info = get_mrr()
+    base_mrr = mrr_info["mrr"]
+
+    # Initial default simulation (0% price change, 5% growth, 3% churn)
+    sim_data = simulate(
+        base_mrr=base_mrr,
+        price_increase_pct=0.0,
+        customer_growth_pct=5.0,
+        churn_pct=3.0,
+        months=12,
+    )
+
+    context = {
+        "base_mrr": base_mrr,
+        "active_subscribers_count": mrr_info.get("active_count", 0),
+        "sim_data": sim_data,
+        "chart_labels_json": json.dumps(sim_data["labels"]),
+        "chart_simulated_json": json.dumps(sim_data["simulated_series"]),
+        "chart_baseline_json": json.dumps(sim_data["baseline_series"]),
+        "active_tab": "simulator",
+    }
+    return render(request, "intelligence/simulator.html", context)
+
