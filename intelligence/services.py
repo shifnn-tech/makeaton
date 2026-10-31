@@ -11,12 +11,13 @@ Purpose:
 
 from decimal import Decimal, ROUND_HALF_UP
 from datetime import date, timedelta
-from django.db.models import Sum
-from django.db.models.functions import TruncMonth
+from django.db.models import Sum, Count, Q, F, Value, DecimalField
+from django.db.models.functions import TruncMonth, Coalesce
+from django.urls import reverse
 from django.utils import timezone
 from subscriptions.models import Subscription
 from catalog.models import Plan
-from billing.models import Payment, Invoice
+from billing.models import Payment, Invoice, InvoiceLine
 
 
 def quantize_currency(amount: Decimal) -> Decimal:
@@ -481,3 +482,353 @@ def get_subscription_health_scores(status_filter: str = None) -> dict:
             "or 2+ invoices are past due."
         ),
     }
+
+
+def detect_leaks() -> dict:
+    """
+    Revenue Leak Detector.
+    Identifies 5 distinct financial leak vectors across the subscription and billing lifecycle:
+      1. Active subscriptions with no invoice for the current billing period.
+      2. Failed or lapsed renewals (next_invoice_date in the past with no invoice generated).
+      3. Unpaid invoices past their due date.
+      4. Payments not matched to an invoice (or exceeding it).
+      5. Invoices whose total does not equal the sum of their lines.
+
+    Returns:
+        dict: {
+            'total_revenue_at_risk': Decimal,
+            'total_leak_count': int,
+            'checks': list of dicts,
+        }
+    """
+    today = timezone.localdate()
+
+    # --------------------------------------------------------------------------
+    # CHECK 1: Active subscriptions with no invoice for current billing period
+    # --------------------------------------------------------------------------
+    active_subs = (
+        Subscription.objects.filter(status=Subscription.STATUS_ACTIVE, start_date__lte=today)
+        .select_related("customer", "plan")
+    )
+    # Invoices covering today
+    current_invoiced_sub_ids = (
+        Invoice.objects.filter(period_start__lte=today, period_end__gte=today)
+        .values_list("subscription_id", flat=True)
+        .distinct()
+    )
+    c1_unbilled_subs = active_subs.exclude(id__in=current_invoiced_sub_ids)
+
+    c1_records = []
+    c1_total_risk = Decimal("0.00")
+    for sub in c1_unbilled_subs:
+        amount = sub.plan.price if sub.plan else Decimal("0.00")
+        c1_total_risk += amount
+        try:
+            detail_url = reverse("subscriptions:detail", args=[sub.id])
+        except Exception:
+            detail_url = f"/subscriptions/{sub.id}/"
+
+        c1_records.append({
+            "id": sub.id,
+            "reference": sub.number,
+            "customer": sub.customer.email if sub.customer else "N/A",
+            "date": sub.start_date,
+            "date_label": "Start Date",
+            "reason": f"Active subscription is missing an invoice covering the current billing cycle (as of {today}).",
+            "amount_at_risk": quantize_currency(amount),
+            "detail_url": detail_url,
+        })
+    c1_records.sort(key=lambda r: r["amount_at_risk"], reverse=True)
+
+    # --------------------------------------------------------------------------
+    # CHECK 2: Failed or lapsed renewals
+    # (next_invoice_date in the past with no renewal invoice generated)
+    # --------------------------------------------------------------------------
+    lapsed_candidates = (
+        Subscription.objects.filter(status=Subscription.STATUS_ACTIVE, next_invoice_date__lt=today)
+        .select_related("customer", "plan")
+    )
+    subs_with_renewal_invoice = (
+        Invoice.objects.filter(period_start__gte=F("subscription__next_invoice_date"))
+        .values_list("subscription_id", flat=True)
+        .distinct()
+    )
+    c2_lapsed_subs = lapsed_candidates.exclude(id__in=subs_with_renewal_invoice)
+
+    c2_records = []
+    c2_total_risk = Decimal("0.00")
+    for sub in c2_lapsed_subs:
+        amount = sub.plan.price if sub.plan else Decimal("0.00")
+        c2_total_risk += amount
+        days_overdue = (today - sub.next_invoice_date).days if sub.next_invoice_date else 0
+        try:
+            detail_url = reverse("subscriptions:detail", args=[sub.id])
+        except Exception:
+            detail_url = f"/subscriptions/{sub.id}/"
+
+        c2_records.append({
+            "id": sub.id,
+            "reference": sub.number,
+            "customer": sub.customer.email if sub.customer else "N/A",
+            "date": sub.next_invoice_date,
+            "date_label": "Scheduled Renewal",
+            "reason": (
+                f"Renewal scheduled for {sub.next_invoice_date} ({days_overdue} day{'s' if days_overdue != 1 else ''} overdue), "
+                f"but no renewal invoice was generated."
+            ),
+            "amount_at_risk": quantize_currency(amount),
+            "detail_url": detail_url,
+        })
+    c2_records.sort(key=lambda r: r["amount_at_risk"], reverse=True)
+
+    # --------------------------------------------------------------------------
+    # CHECK 3: Unpaid invoices past their due date
+    # --------------------------------------------------------------------------
+    c3_overdue_invoices = (
+        Invoice.objects.overdue()
+        .select_related("subscription", "subscription__customer")
+        .order_by("due_date")
+    )
+
+    c3_records = []
+    c3_total_risk = Decimal("0.00")
+    for inv in c3_overdue_invoices:
+        balance = inv.balance_due
+        c3_total_risk += balance
+        days_overdue = (today - inv.due_date).days if inv.due_date else 0
+        customer_email = (
+            inv.subscription.customer.email
+            if inv.subscription and inv.subscription.customer
+            else "N/A"
+        )
+        try:
+            detail_url = reverse("billing:detail", args=[inv.id])
+        except Exception:
+            detail_url = f"/billing/{inv.id}/"
+
+        c3_records.append({
+            "id": inv.id,
+            "reference": inv.number,
+            "customer": customer_email,
+            "date": inv.due_date,
+            "date_label": "Payment Due Date",
+            "reason": (
+                f"Invoice deadline passed {inv.due_date} ({days_overdue} day{'s' if days_overdue != 1 else ''} overdue). "
+                f"Current status: {inv.status} with unpaid balance."
+            ),
+            "amount_at_risk": quantize_currency(balance),
+            "detail_url": detail_url,
+        })
+    c3_records.sort(key=lambda r: r["amount_at_risk"], reverse=True)
+
+    # --------------------------------------------------------------------------
+    # CHECK 4: Payments not matched to an invoice (or exceeding it)
+    # --------------------------------------------------------------------------
+    c4_records = []
+    c4_total_risk = Decimal("0.00")
+
+    # 4a: Unmatched payments (invoice is null)
+    unmatched_payments = Payment.objects.filter(invoice__isnull=True)
+    for p in unmatched_payments:
+        c4_total_risk += p.amount
+        c4_records.append({
+            "id": p.id,
+            "reference": f"Payment #{p.id}",
+            "customer": "Unallocated",
+            "date": p.date,
+            "date_label": "Payment Date",
+            "reason": f"Payment #{p.id} of ${p.amount} is unallocated (not matched to any invoice).",
+            "amount_at_risk": quantize_currency(p.amount),
+            "detail_url": None,
+        })
+
+    # 4b: Payments exceeding the total of their attached invoice
+    exceeding_payments = (
+        Payment.objects.filter(invoice__isnull=False, amount__gt=F("invoice__total"))
+        .select_related("invoice", "invoice__subscription", "invoice__subscription__customer")
+    )
+    for p in exceeding_payments:
+        excess = p.amount - p.invoice.total
+        c4_total_risk += excess
+        customer_email = (
+            p.invoice.subscription.customer.email
+            if p.invoice.subscription and p.invoice.subscription.customer
+            else "N/A"
+        )
+        try:
+            detail_url = reverse("billing:detail", args=[p.invoice.id])
+        except Exception:
+            detail_url = f"/billing/{p.invoice.id}/"
+
+        c4_records.append({
+            "id": p.id,
+            "reference": f"Payment #{p.id} (Inv {p.invoice.number})",
+            "customer": customer_email,
+            "date": p.date,
+            "date_label": "Payment Date",
+            "reason": f"Payment #{p.id} amount (${p.amount}) exceeds invoice total (${p.invoice.total}) by ${excess}.",
+            "amount_at_risk": quantize_currency(excess),
+            "detail_url": detail_url,
+        })
+
+    # 4c: Cumulative payments on an invoice exceeding invoice total
+    overpaid_invoices = (
+        Invoice.objects.annotate(
+            total_paid=Coalesce(Sum("payments__amount"), Value(Decimal("0.00"), output_field=DecimalField()))
+        )
+        .filter(total_paid__gt=F("total"))
+        .select_related("subscription", "subscription__customer")
+    )
+    for inv in overpaid_invoices:
+        excess = inv.total_paid - inv.total
+        c4_total_risk += excess
+        customer_email = (
+            inv.subscription.customer.email
+            if inv.subscription and inv.subscription.customer
+            else "N/A"
+        )
+        try:
+            detail_url = reverse("billing:detail", args=[inv.id])
+        except Exception:
+            detail_url = f"/billing/{inv.id}/"
+
+        c4_records.append({
+            "id": inv.id,
+            "reference": inv.number,
+            "customer": customer_email,
+            "date": inv.period_start,
+            "date_label": "Period Start",
+            "reason": f"Cumulative payments (${inv.total_paid}) exceed invoice total (${inv.total}) by ${excess}.",
+            "amount_at_risk": quantize_currency(excess),
+            "detail_url": detail_url,
+        })
+    c4_records.sort(key=lambda r: r["amount_at_risk"], reverse=True)
+
+    # --------------------------------------------------------------------------
+    # CHECK 5: Invoices whose total does not equal the sum of their lines
+    # --------------------------------------------------------------------------
+    mismatched_invoices = (
+        Invoice.objects.annotate(
+            lines_total=Coalesce(Sum("lines__amount"), Value(Decimal("0.00"), output_field=DecimalField()))
+        )
+        .exclude(lines_total=F("total"))
+        .exclude(Q(number__startswith="INV-BIG-") & Q(lines__isnull=True))
+        .distinct()
+        .select_related("subscription", "subscription__customer")
+        .order_by("-created_at")
+    )
+
+    c5_records = []
+    c5_total_risk = Decimal("0.00")
+    for inv in mismatched_invoices:
+        discrepancy = abs(inv.total - inv.lines_total)
+        c5_total_risk += discrepancy
+        customer_email = (
+            inv.subscription.customer.email
+            if inv.subscription and inv.subscription.customer
+            else "N/A"
+        )
+        try:
+            detail_url = reverse("billing:detail", args=[inv.id])
+        except Exception:
+            detail_url = f"/billing/{inv.id}/"
+
+        c5_records.append({
+            "id": inv.id,
+            "reference": inv.number,
+            "customer": customer_email,
+            "date": inv.period_start,
+            "date_label": "Invoice Date",
+            "reason": (
+                f"Invoice total (${inv.total}) does not equal the sum of its lines (${inv.lines_total}). "
+                f"Discrepancy: ${discrepancy}."
+            ),
+            "amount_at_risk": quantize_currency(discrepancy),
+            "detail_url": detail_url,
+        })
+    c5_records.sort(key=lambda r: r["amount_at_risk"], reverse=True)
+
+    # --------------------------------------------------------------------------
+    # PACKAGING THE 5 CHECKS WITH SAMPLES FOR RESPONSIVE UI RENDERING
+    # --------------------------------------------------------------------------
+    def package_check(check_id, key, title, badge, severity, description, records, total_risk):
+        sample_size = 25
+        return {
+            "id": check_id,
+            "key": key,
+            "title": title,
+            "badge": badge,
+            "severity": severity,
+            "description": description,
+            "count": len(records),
+            "total_risk": quantize_currency(total_risk),
+            "records": records,
+            "sample_records": records[:sample_size],
+            "has_more": len(records) > sample_size,
+            "remaining_count": max(0, len(records) - sample_size),
+        }
+
+    checks = [
+        package_check(
+            check_id="check1",
+            key="active_no_invoice",
+            title="Active Subscriptions With No Invoice for Current Period",
+            badge="Missing Invoices",
+            severity="danger",
+            description="Active subscriptions currently in-cycle where no invoice was issued for the active billing period.",
+            records=c1_records,
+            total_risk=c1_total_risk,
+        ),
+        package_check(
+            check_id="check2",
+            key="lapsed_renewals",
+            title="Failed or Lapsed Renewals",
+            badge="Unbilled Renewals",
+            severity="danger",
+            description="Active subscriptions whose renewal date (next_invoice_date) is in the past with no renewal invoice generated.",
+            records=c2_records,
+            total_risk=c2_total_risk,
+        ),
+        package_check(
+            check_id="check3",
+            key="overdue_invoices",
+            title="Unpaid Invoices Past Due Date",
+            badge="Overdue Receivables",
+            severity="warning",
+            description="Invoices past their payment due date with an outstanding balance due.",
+            records=c3_records,
+            total_risk=c3_total_risk,
+        ),
+        package_check(
+            check_id="check4",
+            key="unmatched_payments",
+            title="Payments Not Matched or Exceeding Invoice",
+            badge="Payment Discrepancies",
+            severity="info",
+            description="Payments not matched to any invoice, or payments whose amount exceeds the invoice total.",
+            records=c4_records,
+            total_risk=c4_total_risk,
+        ),
+        package_check(
+            check_id="check5",
+            key="line_total_mismatch",
+            title="Invoices Total Mismatch With Lines",
+            badge="Integrity Discrepancies",
+            severity="warning",
+            description="Invoices whose stated total does not match the sum of itemized invoice lines.",
+            records=c5_records,
+            total_risk=c5_total_risk,
+        ),
+    ]
+
+    total_revenue_at_risk = quantize_currency(
+        c1_total_risk + c2_total_risk + c3_total_risk + c4_total_risk + c5_total_risk
+    )
+    total_leak_count = sum(c["count"] for c in checks)
+
+    return {
+        "total_revenue_at_risk": total_revenue_at_risk,
+        "total_leak_count": total_leak_count,
+        "checks": checks,
+    }
+

@@ -69,3 +69,25 @@ def forecast_health_view(request):
 
     return render(request, "intelligence/forecast_health.html", context)
 
+
+@role_required("admin", "staff")
+def leak_detector_view(request):
+    """
+    Feature 3: Revenue Leak Detector:
+      - Total revenue at risk summary card
+      - Five independent leak audits:
+          1. Active subscriptions with no invoice for current period
+          2. Failed or lapsed renewals
+          3. Unpaid invoices past their due date
+          4. Payments not matched or exceeding invoice
+          5. Invoices whose total does not equal sum of lines
+    """
+    from .services import detect_leaks
+    leak_data = detect_leaks()
+
+    context = {
+        "leak_data": leak_data,
+        "active_tab": "leaks",
+    }
+    return render(request, "intelligence/leaks.html", context)
+
