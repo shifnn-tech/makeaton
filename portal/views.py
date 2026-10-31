@@ -24,7 +24,10 @@ from accounts.models import User
 from accounts.decorators import role_required
 from subscriptions.models import Subscription
 from billing.models import Invoice, Payment
-from catalog.models import Plan
+import csv
+from django.http import HttpResponse
+from catalog.models import Plan, Discount
+from .models import Notification, AuditLog
 
 
 # ==============================================================================
@@ -504,3 +507,316 @@ def customer_detail_view(request, customer_id):
         "overdue_invoices_count": overdue_invoices_count,
     }
     return render(request, "portal/customer_detail.html", context)
+
+
+# ==============================================================================
+# 9. ACTIVITY TIMELINE VIEW (STAFF & ADMIN)
+# ==============================================================================
+@role_required(User.ROLE_ADMIN, User.ROLE_STAFF)
+def activity_timeline_view(request):
+    """
+    Activity Timeline & Audit Trail.
+    Allows staff and administrators to inspect system events (create, update, delete)
+    across Subscription, Invoice, Payment, and Discount models.
+    Supports filtering by model type, action, and date range with pagination.
+    """
+    model_filter = request.GET.get("model", "").strip()
+    action_filter = request.GET.get("action", "").strip()
+    date_from = request.GET.get("date_from", "").strip()
+    date_to = request.GET.get("date_to", "").strip()
+
+    logs_qs = AuditLog.objects.select_related("user").order_by("-created_at")
+
+    if model_filter:
+        logs_qs = logs_qs.filter(model_name=model_filter)
+    if action_filter:
+        logs_qs = logs_qs.filter(action=action_filter)
+    if date_from:
+        logs_qs = logs_qs.filter(created_at__date__gte=date_from)
+    if date_to:
+        logs_qs = logs_qs.filter(created_at__date__lte=date_to)
+
+    paginator = Paginator(logs_qs, 20)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    available_models = ["Subscription", "Invoice", "Payment", "Discount"]
+    available_actions = [
+        (AuditLog.ACTION_CREATE, "Created"),
+        (AuditLog.ACTION_UPDATE, "Updated"),
+        (AuditLog.ACTION_DELETE, "Deleted"),
+    ]
+
+    context = {
+        "page_obj": page_obj,
+        "model_filter": model_filter,
+        "action_filter": action_filter,
+        "date_from": date_from,
+        "date_to": date_to,
+        "available_models": available_models,
+        "available_actions": available_actions,
+        "total_logs": paginator.count,
+    }
+    return render(request, "portal/activity_timeline.html", context)
+
+
+# ==============================================================================
+# 10. NOTIFICATIONS LIST VIEW
+# ==============================================================================
+@login_required
+def notification_list_view(request):
+    """
+    User Notifications Center.
+    Displays all in-app notifications for the logged-in user with filter options
+    (All, Unread, Read) and pagination.
+    """
+    status_filter = request.GET.get("status", "all").strip().lower()
+    notifs_qs = request.user.notifications.all().order_by("-created_at")
+
+    if status_filter == "unread":
+        notifs_qs = notifs_qs.filter(is_read=False)
+    elif status_filter == "read":
+        notifs_qs = notifs_qs.filter(is_read=True)
+
+    paginator = Paginator(notifs_qs, 15)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    unread_count = request.user.notifications.filter(is_read=False).count()
+
+    context = {
+        "page_obj": page_obj,
+        "status_filter": status_filter,
+        "unread_count": unread_count,
+        "total_notifications": paginator.count,
+    }
+    return render(request, "portal/notification_list.html", context)
+
+
+# ==============================================================================
+# 11. MARK NOTIFICATION AS READ VIEW
+# ==============================================================================
+@login_required
+def notification_mark_read_view(request, notification_id):
+    """
+    Marks a single notification as read.
+    If the notification contains a destination link, redirects the user there;
+    otherwise returns to the notification list.
+    """
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    if not notification.is_read:
+        notification.is_read = True
+        notification.save(update_fields=["is_read"])
+
+    if notification.link:
+        return redirect(notification.link)
+    return redirect("portal:notifications")
+
+
+# ==============================================================================
+# 12. MARK ALL NOTIFICATIONS AS READ VIEW
+# ==============================================================================
+@login_required
+def notification_mark_all_read_view(request):
+    """
+    Marks all unread notifications for the logged-in user as read in a single query.
+    Redirects back to referring page or the notifications list.
+    """
+    request.user.notifications.filter(is_read=False).update(is_read=True)
+    next_url = request.META.get("HTTP_REFERER")
+    if next_url:
+        return redirect(next_url)
+    return redirect("portal:notifications")
+
+
+# ==============================================================================
+# 13. BUSINESS REPORTS & CSV EXPORT (STAFF & ADMIN)
+# ==============================================================================
+@role_required(User.ROLE_ADMIN, User.ROLE_STAFF)
+def reports_view(request):
+    """
+    Business Intelligence and Compliance Reports.
+    Allows staff and administrators to generate filtered reports for:
+      - Subscriptions (filterable by date range and status)
+      - Invoices (filterable by date range and status)
+      - Payments (filterable by date range and method)
+    Includes instant CSV export powered by Python's standard csv module.
+    """
+    report_type = request.GET.get("report_type", "subscriptions").strip().lower()
+    date_from = request.GET.get("date_from", "").strip()
+    date_to = request.GET.get("date_to", "").strip()
+    status_filter = request.GET.get("status", "").strip()
+    is_csv_export = request.GET.get("export") == "csv"
+
+    today_str = timezone.localdate().strftime("%Y%m%d")
+
+    # 1. SUBSCRIPTIONS REPORT
+    if report_type == "subscriptions":
+        qs = (
+            Subscription.objects
+            .select_related("customer", "plan")
+            .order_by("-created_at")
+        )
+        if date_from:
+            qs = qs.filter(created_at__date__gte=date_from)
+        if date_to:
+            qs = qs.filter(created_at__date__lte=date_to)
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+
+        if is_csv_export:
+            response = HttpResponse(content_type="text/csv")
+            response["Content-Disposition"] = f'attachment; filename="brightloop_subscriptions_{today_str}.csv"'
+            writer = csv.writer(response)
+            writer.writerow([
+                "Subscription #",
+                "Customer Email",
+                "Customer Name",
+                "Plan Name",
+                "Billing Period",
+                "Price",
+                "Status",
+                "Start Date",
+                "Next Invoice Date",
+                "Created At",
+            ])
+            for sub in qs:
+                writer.writerow([
+                    sub.number,
+                    sub.customer.email,
+                    sub.customer.get_full_name() or "",
+                    sub.plan.name if sub.plan else "",
+                    sub.plan.get_billing_period_display() if sub.plan else "",
+                    f"{sub.plan.price:.2f}" if sub.plan else "0.00",
+                    sub.status,
+                    sub.start_date.strftime("%Y-%m-%d") if sub.start_date else "",
+                    sub.next_invoice_date.strftime("%Y-%m-%d") if sub.next_invoice_date else "",
+                    sub.created_at.strftime("%Y-%m-%d %H:%M:%S") if hasattr(sub, "created_at") and sub.created_at else "",
+                ])
+            return response
+
+        total_count = qs.count()
+        active_count = qs.filter(status=Subscription.STATUS_ACTIVE).count()
+        status_choices = Subscription.STATUS_CHOICES
+        paginator = Paginator(qs, 15)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        summary_metrics = [
+            ("Total Subscriptions", total_count),
+            ("Active Subscriptions", active_count),
+        ]
+
+    # 2. INVOICES REPORT
+    elif report_type == "invoices":
+        qs = (
+            Invoice.objects
+            .select_related("subscription__customer", "subscription__plan")
+            .order_by("-created_at")
+        )
+        if date_from:
+            qs = qs.filter(due_date__gte=date_from)
+        if date_to:
+            qs = qs.filter(due_date__lte=date_to)
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+
+        if is_csv_export:
+            response = HttpResponse(content_type="text/csv")
+            response["Content-Disposition"] = f'attachment; filename="brightloop_invoices_{today_str}.csv"'
+            writer = csv.writer(response)
+            writer.writerow([
+                "Invoice #",
+                "Subscription #",
+                "Customer Email",
+                "Plan Name",
+                "Due Date",
+                "Total Amount",
+                "Status",
+            ])
+            for inv in qs:
+                writer.writerow([
+                    inv.number,
+                    inv.subscription.number if inv.subscription else "",
+                    inv.subscription.customer.email if inv.subscription else "",
+                    inv.subscription.plan.name if inv.subscription and inv.subscription.plan else "",
+                    inv.due_date.strftime("%Y-%m-%d") if inv.due_date else "",
+                    f"{inv.total:.2f}",
+                    inv.status,
+                ])
+            return response
+
+        total_count = qs.count()
+        total_volume = qs.aggregate(total=Sum("total"))["total"] or Decimal("0.00")
+        paid_volume = qs.filter(status=Invoice.STATUS_PAID).aggregate(total=Sum("total"))["total"] or Decimal("0.00")
+        status_choices = Invoice.STATUS_CHOICES
+        paginator = Paginator(qs, 15)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        summary_metrics = [
+            ("Total Invoices", total_count),
+            ("Total Invoiced", f"${total_volume:,.2f}"),
+            ("Settled Paid", f"${paid_volume:,.2f}"),
+        ]
+
+    # 3. PAYMENTS REPORT
+    else:  # payments
+        report_type = "payments"
+        qs = (
+            Payment.objects
+            .select_related("invoice__subscription__customer")
+            .order_by("-date", "-created_at")
+        )
+        if date_from:
+            qs = qs.filter(date__gte=date_from)
+        if date_to:
+            qs = qs.filter(date__lte=date_to)
+        if status_filter:
+            qs = qs.filter(method=status_filter)
+
+        if is_csv_export:
+            response = HttpResponse(content_type="text/csv")
+            response["Content-Disposition"] = f'attachment; filename="brightloop_payments_{today_str}.csv"'
+            writer = csv.writer(response)
+            writer.writerow([
+                "Payment ID",
+                "Invoice #",
+                "Customer Email",
+                "Amount",
+                "Method",
+                "Payment Date",
+            ])
+            for pmt in qs:
+                writer.writerow([
+                    pmt.id,
+                    pmt.invoice.number if pmt.invoice else "",
+                    pmt.invoice.subscription.customer.email if pmt.invoice and pmt.invoice.subscription else "",
+                    f"{pmt.amount:.2f}",
+                    pmt.get_method_display(),
+                    pmt.date.strftime("%Y-%m-%d") if pmt.date else "",
+                ])
+            return response
+
+        total_count = qs.count()
+        total_collected = qs.aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+        status_choices = Payment.METHOD_CHOICES
+        paginator = Paginator(qs, 15)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        summary_metrics = [
+            ("Payment Receipts", total_count),
+            ("Total Collected", f"${total_collected:,.2f}"),
+        ]
+
+    context = {
+        "report_type": report_type,
+        "date_from": date_from,
+        "date_to": date_to,
+        "status_filter": status_filter,
+        "status_choices": status_choices,
+        "summary_metrics": summary_metrics,
+        "page_obj": page_obj,
+    }
+    return render(request, "portal/reports.html", context)

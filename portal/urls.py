@@ -7,6 +7,9 @@ URL routes for the unified Portal application:
   - Global cross-model search (?q=)
   - 30-day billing calendar and upcoming renewal schedule
   - Staff-only customer directory and detailed customer profiles
+  - Activity audit timeline (admin & staff)
+  - In-app notification center and mark-as-read actions
+  - Compliance reports & CSV export (admin & staff)
 """
 
 from django.urls import path
@@ -36,5 +39,15 @@ urlpatterns = [
     # 7. Staff-only customer list and customer detail
     path("customers/", views.customer_list_view, name="customer_list"),
     path("customers/<int:customer_id>/", views.customer_detail_view, name="customer_detail"),
-]
 
+    # 8. Activity Timeline / Audit Trail (admin & staff)
+    path("activity/", views.activity_timeline_view, name="activity_timeline"),
+
+    # 9. In-app Notifications
+    path("notifications/", views.notification_list_view, name="notifications"),
+    path("notifications/<int:notification_id>/read/", views.notification_mark_read_view, name="notification_read"),
+    path("notifications/mark-all-read/", views.notification_mark_all_read_view, name="notification_mark_all_read"),
+
+    # 10. Reports & CSV Export (admin & staff)
+    path("reports/", views.reports_view, name="reports"),
+]

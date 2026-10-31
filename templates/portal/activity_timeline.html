@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Activity Timeline & Audit Trail - BrightLoop{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- Header -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-2">
+    <div>
+      <h2 class="fw-bold mb-1">Activity Timeline</h2>
+      <p class="text-muted mb-0">System audit trail recording creations, updates, and deletions across domain records.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'portal:reports' %}" class="btn btn-outline-primary btn-sm">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="me-1">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/>
+          <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+        </svg>
+        Compliance Reports
+      </a>
+    </div>
+  </div>
+
+  <!-- Filters Bar -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+      <form method="get" action="{% url 'portal:activity_timeline' %}" class="row g-2 align-items-end">
+        <!-- Model Filter -->
+        <div class="col-sm-6 col-md-3">
+          <label class="form-label small text-muted mb-1">Model Type</label>
+          <select name="model" class="form-select form-select-sm">
+            <option value="">All Models</option>
+            {% for m in available_models %}
+              <option value="{{ m }}" {% if model_filter == m %}selected{% endif %}>{{ m }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Action Filter -->
+        <div class="col-sm-6 col-md-2">
+          <label class="form-label small text-muted mb-1">Action</label>
+          <select name="action" class="form-select form-select-sm">
+            <option value="">All Actions</option>
+            {% for act_val, act_lbl in available_actions %}
+              <option value="{{ act_val }}" {% if action_filter == act_val %}selected{% endif %}>{{ act_lbl }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- Date From -->
+        <div class="col-sm-6 col-md-2">
+          <label class="form-label small text-muted mb-1">Date From</label>
+          <input type="date" name="date_from" class="form-control form-control-sm" value="{{ date_from }}">
+        </div>
+
+        <!-- Date To -->
+        <div class="col-sm-6 col-md-2">
+          <label class="form-label small text-muted mb-1">Date To</label>
+          <input type="date" name="date_to" class="form-control form-control-sm" value="{{ date_to }}">
+        </div>
+
+        <!-- Submit & Reset -->
+        <div class="col-sm-12 col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-primary btn-sm flex-grow-1">Filter</button>
+          {% if model_filter or action_filter or date_from or date_to %}
+            <a href="{% url 'portal:activity_timeline' %}" class="btn btn-outline-secondary btn-sm">Reset</a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Audit Log List / Timeline -->
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+      <h5 class="fw-bold mb-0">System Events</h5>
+      <span class="badge bg-light text-dark border">
+        Showing {{ page_obj.start_index|default:0 }} &ndash; {{ page_obj.end_index|default:0 }} of {{ total_logs }}
+      </span>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Timestamp</th>
+            <th>Action</th>
+            <th>Model</th>
+            <th>Record ID</th>
+            <th>Actor</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in page_obj %}
+          <tr>
+            <td class="text-nowrap small text-muted">
+              {{ log.created_at|date:"M d, Y" }} <br>
+              <span class="fw-semibold">{{ log.created_at|time:"H:i:s" }}</span>
+            </td>
+            <td>
+              {% if log.action == 'create' %}
+                <span class="badge bg-success-subtle text-success border border-success-subtle">Created</span>
+              {% elif log.action == 'update' %}
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Updated</span>
+              {% elif log.action == 'delete' %}
+                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Deleted</span>
+              {% else %}
+                <span class="badge bg-light text-dark border">{{ log.action }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge bg-secondary-subtle text-secondary border">
+                {{ log.model_name }}
+              </span>
+            </td>
+            <td class="fw-semibold small">
+              #{{ log.object_id|default:"-" }}
+            </td>
+            <td class="small">
+              {% if log.user %}
+                <span title="{{ log.user.email }}">{{ log.user.get_full_name|default:log.user.email }}</span>
+              {% else %}
+                <span class="text-muted fst-italic">System</span>
+              {% endif %}
+            </td>
+            <td class="small">
+              {{ log.description }}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-4 text-muted">
+              {% include "includes/empty_state.html" with title="No audit events found" message="No system activity matches your filter criteria." %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% include "includes/pagination.html" %}
+
+</div>
+{% endblock %}
+
