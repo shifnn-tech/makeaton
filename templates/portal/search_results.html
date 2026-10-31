@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% load humanize %}
+
+{% block title %}Search Results: "{{ query }}" - BrightLoop{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+  <!-- Search Header & Search Input -->
+  <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-4 gap-2">
+    <div>
+      <h2 class="fw-bold mb-1">
+        {% if query %}
+          Search Results for <span class="text-primary-brand">"{{ query }}"</span>
+        {% else %}
+          Global Search
+        {% endif %}
+      </h2>
+      <p class="text-muted mb-0">
+        {% if query %}
+          Found {{ total_results }} matching record{{ total_results|pluralize }} across customers, subscriptions, and invoices.
+        {% else %}
+          Search across customer emails, subscription contract numbers, and invoice identifiers.
+        {% endif %}
+      </p>
+    </div>
+  </div>
+
+  <!-- In-page Search Bar -->
+  <div class="card shadow-sm border-0 mb-4">
+    <div class="card-body p-3">
+      <form method="get" action="{% url 'portal:search' %}" class="row g-2 align-items-center">
+        <div class="col-md-10">
+          <div class="input-group">
+            <span class="input-group-text bg-white border-end-0">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+            </span>
+            <input type="text" name="q" class="form-control border-start-0 ps-0" placeholder="Search by customer email, name, subscription #, or invoice #..." value="{{ query }}" autofocus>
+          </div>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  {% if not query %}
+    {% include "includes/empty_state.html" with title="Enter a search term" message="Type an email address, customer name, subscription contract number, or invoice ID above to begin searching." %}
+  {% elif total_results == 0 %}
+    {% include "includes/empty_state.html" with title="No results found" message="No matching customers, subscriptions, or invoices matched your query. Try refining your keywords or checking for typos." %}
+  {% else %}
+
+    <!-- 1. Customer Results (Staff & Admin Only) -->
+    {% if is_internal_staff and customers %}
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0">
+          <span class="badge bg-primary-brand me-2">{{ customers|length }}</span> Customers
+        </h5>
+        <a href="{% url 'portal:customer_list' %}" class="btn btn-outline-secondary btn-sm">Full Directory &rarr;</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Customer</th>
+              <th>Email</th>
+              <th>Active Subscriptions</th>
+              <th>Joined Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cust in customers %}
+            <tr>
+              <td class="fw-semibold">
+                <a href="{% url 'portal:customer_detail' cust.id %}" class="text-decoration-none">
+                  {{ cust.get_full_name|default:cust.email }}
+                </a>
+              </td>
+              <td>{{ cust.email }}</td>
+              <td>
+                <span class="badge bg-light text-dark border">{{ cust.active_subs_count }} active</span>
+              </td>
+              <td>{{ cust.date_joined|date:"M d, Y" }}</td>
+              <td>
+                <a href="{% url 'portal:customer_detail' cust.id %}" class="btn btn-sm btn-outline-primary">View Account</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- 2. Subscription Results -->
+    {% if subscriptions %}
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0">
+          <span class="badge bg-success me-2">{{ subscriptions|length }}</span> Subscriptions
+        </h5>
+        <a href="{% url 'subscriptions:list' %}" class="btn btn-outline-secondary btn-sm">All Subscriptions &rarr;</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Contract #</th>
+              {% if is_internal_staff %}<th>Customer</th>{% endif %}
+              <th>Plan</th>
+              <th>Status</th>
+              <th>Next Invoice Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sub in subscriptions %}
+            <tr>
+              <td class="fw-bold"><a href="{% url 'subscriptions:detail' sub.id %}">{{ sub.number }}</a></td>
+              {% if is_internal_staff %}
+                <td>
+                  <a href="{% url 'portal:customer_detail' sub.customer.id %}" class="text-decoration-none">
+                    {{ sub.customer.email }}
+                  </a>
+                </td>
+              {% endif %}
+              <td>{{ sub.plan.name }}</td>
+              <td>
+                <span class="badge {% if sub.status == 'active' %}badge-status-active{% elif sub.status == 'closed' %}badge-status-closed{% else %}badge-status-draft{% endif %}">
+                  {{ sub.get_status_display }}
+                </span>
+              </td>
+              <td>{{ sub.next_invoice_date|date:"M d, Y"|default:"-" }}</td>
+              <td>
+                <a href="{% url 'subscriptions:detail' sub.id %}" class="btn btn-sm btn-outline-secondary">Details</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    <!-- 3. Invoice Results -->
+    {% if invoices %}
+    <div class="card shadow-sm border-0 mb-4">
+      <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+        <h5 class="fw-bold mb-0">
+          <span class="badge bg-info text-dark me-2">{{ invoices|length }}</span> Invoices
+        </h5>
+        <a href="{% url 'billing:list' %}" class="btn btn-outline-secondary btn-sm">All Invoices &rarr;</a>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Invoice #</th>
+              {% if is_internal_staff %}<th>Customer</th>{% endif %}
+              <th>Subscription #</th>
+              <th>Due Date</th>
+              <th>Total Amount</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for inv in invoices %}
+            <tr>
+              <td class="fw-bold"><a href="{% url 'billing:detail' inv.id %}">{{ inv.number }}</a></td>
+              {% if is_internal_staff %}
+                <td>
+                  <a href="{% url 'portal:customer_detail' inv.subscription.customer.id %}" class="text-decoration-none">
+                    {{ inv.subscription.customer.email }}
+                  </a>
+                </td>
+              {% endif %}
+              <td>
+                <a href="{% url 'subscriptions:detail' inv.subscription.id %}">{{ inv.subscription.number }}</a>
+              </td>
+              <td>{{ inv.due_date|date:"M d, Y" }}</td>
+              <td class="fw-bold">${{ inv.total|floatformat:2|intcomma }}</td>
+              <td>
+                <span class="badge {% if inv.status == 'paid' %}badge-status-paid{% elif inv.is_overdue %}badge-status-overdue{% else %}badge-status-draft{% endif %}">
+                  {% if inv.is_overdue %}Overdue{% else %}{{ inv.get_status_display }}{% endif %}
+                </span>
+              </td>
+              <td>
+                <a href="{% url 'billing:detail' inv.id %}" class="btn btn-sm btn-outline-secondary">View Invoice</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+  {% endif %}
+
+</div>
+{% endblock %}
+
